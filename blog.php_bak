@@ -1,0 +1,70 @@
+<?php // blog.php ?>
+<?php get_header(); ?>
+
+<div class="bg-white py-24 sm:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-4xl font-semibold tracking-tight text-balance text-gray-900 sm:text-5xl">Articles, Cases and
+        Guides</h2>
+      <p class="mt-2 text-lg/8 text-gray-600">Learn how to grow your business with our expert advice.</p>
+    </div>
+    <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+      <?php if (have_posts()):
+        while (have_posts()):
+          the_post(); ?>
+          <article class="flex flex-col items-start justify-between">
+            <div class="relative w-full">
+              <?php if (has_post_thumbnail()): ?>
+                <?php the_post_thumbnail('large', ['class' => 'aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-2/1 lg:aspect-3/2']); ?>
+              <?php else: ?>
+                <img src="/wp-content/uploads/2025/10/header-back-white.jpg" alt=""
+                  class="aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-2/1 lg:aspect-3/2" />
+              <?php endif; ?>
+              <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-900/10"></div>
+            </div>
+            <div class="flex max-w-xl grow flex-col justify-between">
+              <div class="mt-8 flex items-center gap-x-4 text-xs">
+                <time datetime="<?php echo get_the_date('c'); ?>"
+                  class="text-gray-500"><?php echo get_the_date('M j, Y'); ?></time>
+                <?php
+                $categories = get_the_category();
+                if ($categories): ?>
+                  <a href="<?php echo get_category_link($categories[0]->term_id); ?>"
+                    class="relative z-10 rounded-full bg-gray-50 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-100"><?php echo esc_html($categories[0]->name); ?></a>
+                <?php endif; ?>
+              </div>
+              <div class="group relative grow">
+                <h3 class="mt-3 text-lg/6 font-semibold text-gray-900 group-hover:text-gray-600">
+                  <a href="<?php the_permalink(); ?>">
+                    <span class="absolute inset-0"></span>
+                    <?php the_title(); ?>
+                  </a>
+                </h3>
+                <p class="mt-5 line-clamp-3 text-sm/6 text-gray-600"><?php the_excerpt(); ?></p>
+              </div>
+              <div class="relative mt-8 flex items-center gap-x-4 justify-self-end">
+                <?php echo get_avatar(get_the_author_meta('ID'), 40, '', '', ['class' => 'size-10 rounded-full bg-gray-100']); ?>
+                <div class="text-sm/6">
+                  <p class="font-semibold text-gray-900">
+                    <a href="<?php echo get_author_posts_url(get_the_author_meta('ID')); ?>">
+                      <span class="absolute inset-0"></span>
+                      <?php the_author(); ?>
+                    </a>
+                  </p>
+                  <p class="text-gray-600"><?php the_author_meta('description') ?: 'Author'; ?></p>
+                </div>
+              </div>
+            </div>
+          </article>
+        <?php endwhile; ?>
+      <?php else: ?>
+        <p class="col-span-3 text-center text-gray-500">No posts found.</p>
+      <?php endif; ?>
+    </div>
+    <div class="mt-12 flex justify-center">
+      <?php the_posts_pagination(['mid_size' => 2]); ?>
+    </div>
+  </div>
+</div>
+
+<?php get_footer(); ?>

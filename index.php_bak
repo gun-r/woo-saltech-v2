@@ -1,0 +1,16 @@
+<?php get_header(); ?>
+
+<?php if (have_posts()) : ?>
+  <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <?php while (have_posts()) : the_post(); ?>
+      <article class="p-4 border rounded-lg bg-white shadow">
+        <h2 class="text-2xl font-semibold mb-2"><a href="<?php the_permalink(); ?>" class="text-brand hover:underline">--<?php the_title(); ?></a></h2>
+        <div class="text-gray-700"><?php the_excerpt(); ?></div>
+      </article>
+    <?php endwhile; ?>
+  </div>
+<?php else : ?>
+  <p>No posts found.</p>
+<?php endif; ?>
+
+<?php get_footer(); ?>

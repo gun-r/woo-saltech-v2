@@ -1,0 +1,836 @@
+<?php
+$paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+$args = [
+  'post_type' => 'product',
+  'posts_per_page' => 16,
+  'post_status' => 'publish',
+  'paged' => $paged,
+];
+
+// Category filter
+$selected_category = isset($_GET['product_cat']) ? sanitize_text_field($_GET['product_cat']) : '';
+if ($selected_category) {
+  $args['tax_query'] = [
+    [
+      'taxonomy' => 'product_cat',
+      'field' => 'slug',
+      'terms' => $selected_category,
+    ]
+  ];
+}
+
+$loop = new WP_Query($args);
+
+// Suppliers array (placeholder - not filtering yet)
+$suppliers = array(
+  array(
+    'name' => 'Sal-Tech Easy Packaging DK',
+    'description' => 'Sal-Tech Easy Packaging\'s main activity is to supply packaging solutions in Denmark and Europe.',
+    'logo' => get_template_directory_uri() . '/assets/images/suppliers/4-medium_default.jpg',
+    'url' => '#',
+    'products_count' => 8
+  ),
+  array(
+    'name' => 'Sal-Tech Embalaje SL.',
+    'description' => ' ',
+    'logo' => get_template_directory_uri() . '/assets/images/suppliers/5-medium_default.jpg',
+    'url' => '#',
+    'products_count' => 2
+  ),
+  array(
+    'name' => 'Sal-Tech HKG Ltd.',
+    'description' => 'Sal-Tech HKG Ltd. part of Salbæk Technology Group is our purchase organisation based in Hong Kong.',
+    'logo' => get_template_directory_uri() . '/assets/images/suppliers/3-medium_default.jpg',
+    'url' => '#',
+    'products_count' => 8
+  ),
+);
+
+// Build breadcrumb array
+function build_product_breadcrumb($selected_category_slug = '')
+{
+  $breadcrumbs = array();
+
+  // Always add home
+  $breadcrumbs[] = array(
+    'url' => home_url('/'),
+    'title' => 'Home',
+    'is_home' => true
+  );
+
+  // Add shop
+  $shop_page_id = wc_get_page_id('shop');
+  $breadcrumbs[] = array(
+    'url' => get_permalink($shop_page_id),
+    'title' => 'Shop',
+    'is_current' => empty($selected_category_slug)
+  );
+
+  // If category is selected, build hierarchy
+  if (!empty($selected_category_slug)) {
+    $current_category = get_term_by('slug', $selected_category_slug, 'product_cat');
+
+    if ($current_category && !is_wp_error($current_category)) {
+      $hierarchy = array();
+      $term = $current_category;
+
+      // Build hierarchy from current to root
+      while ($term && $term->parent != 0) {
+        array_unshift($hierarchy, $term);
+        $term = get_term($term->parent, 'product_cat');
+      }
+
+      // Add root category if exists
+      if ($term && $term->term_id != $current_category->term_id) {
+        array_unshift($hierarchy, $term);
+      }
+
+      // If current wasn't added yet, add it
+      if (empty($hierarchy) || end($hierarchy)->term_id != $current_category->term_id) {
+        $hierarchy[] = $current_category;
+      }
+
+      // Limit to 4 levels
+      $hierarchy = array_slice($hierarchy, 0, 4);
+
+      // Add to breadcrumbs
+      foreach ($hierarchy as $index => $cat) {
+        $is_last = ($index === count($hierarchy) - 1);
+        $breadcrumbs[] = array(
+          'url' => get_term_link($cat),
+          'title' => $cat->name,
+          'is_current' => $is_last
+        );
+      }
+    }
+  }
+
+  return $breadcrumbs;
+}
+
+$breadcrumbs = build_product_breadcrumb($selected_category);
+?>
+
+<!-- Breadcrumbs Bar -->
+<section aria-labelledby="filter-heading" class="mb-8">
+  <h2 id="filter-heading" class="sr-only">Filters</h2>
+  <div
+    class="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 border-t border-b border-gray-200 bg-white">
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="Breadcrumb" class="order-1">
+      <ol class="flex items-center flex-wrap gap-2 text-sm">
+        <?php foreach ($breadcrumbs as $index => $crumb): ?>
+          <li class="flex items-center gap-2">
+            <?php if ($index > 0): ?>
+              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            <?php endif; ?>
+
+            <?php if (!empty($crumb['is_current'])): ?>
+              <span class="font-semibold text-red-800" aria-current="page">
+                <?php echo esc_html($crumb['title']); ?>
+              </span>
+            <?php else: ?>
+              <a href="<?php echo esc_url($crumb['url']); ?>"
+                class="inline-flex items-center gap-1 text-gray-600 hover:text-red-800 transition-colors">
+                <?php if (!empty($crumb['is_home'])): ?>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                <?php endif; ?>
+                <?php echo esc_html($crumb['title']); ?>
+              </a>
+            <?php endif; ?>
+          </li>
+        <?php endforeach; ?>
+      </ol>
+    </nav>
+
+    <!-- Result Count -->
+    <div class="woocommerce-result-count text-sm text-gray-600 order-2" style="margin:0 !important;">
+      <?php
+      $total = $loop->found_posts;
+      $per_page = $args['posts_per_page'];
+      $from = (($paged - 1) * $per_page) + 1;
+      $to = min($paged * $per_page, $total);
+
+      if ($total > 0) {
+        printf(
+          esc_html(_n('Showing %1$s–%2$s of %3$s result', 'Showing %1$s–%2$s of %3$s results', $total, 'woocommerce')),
+          '<strong>' . number_format_i18n($from) . '</strong>',
+          '<strong>' . number_format_i18n($to) . '</strong>',
+          '<strong>' . number_format_i18n($total) . '</strong>'
+        );
+      } else {
+        esc_html_e('No products found', 'woocommerce');
+      }
+      ?>
+    </div>
+  </div>
+</section>
+
+<div class="lg:hidden mb-6">
+  <!-- Mobile Navigation Tabs -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-1 flex gap-1">
+    <button data-tab="products"
+      class="mobile-tab flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-colors bg-gray-700 text-white">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+      Products
+    </button>
+    <button data-tab="categories"
+      class="mobile-tab flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+      </svg>
+      Categories
+    </button>
+    <button data-tab="suppliers"
+      class="mobile-tab flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+      </svg>
+      Suppliers
+    </button>
+  </div>
+
+  <!-- Categories View (Mobile) -->
+  <div id="mobile-categories" class="hidden mt-4 bg-white rounded-lg shadow-sm border border-gray-200">
+    <?php if ($selected_category):
+      $cat = get_term_by('slug', $selected_category, 'product_cat');
+      ?>
+      <!-- Back Button when category is selected -->
+      <div class="p-4 border-b border-gray-200">
+        <a href="<?php echo strtok($_SERVER['REQUEST_URI'], '?'); ?>"
+          class="inline-flex items-center gap-2 text-sm font-medium text-red-700 hover:text-red-800">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Categories
+        </a>
+        <p class="mt-2 text-xs text-gray-600">Filtering by: <strong><?php echo esc_html($cat->name); ?></strong></p>
+      </div>
+    <?php else: ?>
+      <!-- Categories List -->
+      <div class="p-4">
+        <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+          </svg>
+          Browse Categories
+        </h3>
+        <div class="max-h-96 overflow-y-auto space-y-1">
+          <?php
+          $categories = get_terms([
+            'taxonomy' => 'product_cat',
+            'hide_empty' => true,
+            'parent' => 0,
+          ]);
+
+          function display_mobile_category($category, $level = 0)
+          {
+            if ($level > 3)
+              return;
+
+            $indent = $level * 1;
+            $has_children = get_terms([
+              'taxonomy' => 'product_cat',
+              'hide_empty' => true,
+              'parent' => $category->term_id,
+            ]);
+
+            echo '<div style="padding-left: ' . $indent . 'rem;">';
+            echo '<a href="' . add_query_arg('product_cat', $category->slug) . '" 
+                     class="flex items-center justify-between py-3 px-3 text-sm hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-200">';
+            echo '<span class="flex items-center gap-2 font-medium text-gray-900">';
+            if (!empty($has_children)) {
+              echo '<svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>';
+            }
+            echo esc_html($category->name);
+            echo '</span>';
+            echo '<span class="text-xs bg-gray-100 px-2 py-1 rounded-full font-semibold text-gray-600">' . $category->count . '</span>';
+            echo '</a>';
+
+            if (!empty($has_children)) {
+              foreach ($has_children as $child) {
+                display_mobile_category($child, $level + 1);
+              }
+            }
+
+            echo '</div>';
+          }
+
+          if (!empty($categories)) {
+            foreach ($categories as $category) {
+              if ($category->slug === 'uncategorized')
+                continue;
+              display_mobile_category($category, 0);
+            }
+          }
+          ?>
+        </div>
+      </div>
+    <?php endif; ?>
+  </div>
+
+  <!-- Suppliers View (Mobile) -->
+  <div id="mobile-suppliers" class="hidden mt-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      <svg class="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+      </svg>
+      Filter by Supplier
+    </h3>
+    <div class="max-h-96 overflow-y-auto space-y-2">
+      <?php
+      $suppliers = array(
+        array('name' => 'Sal-Tech Easy Packaging DK', 'products_count' => 8),
+        array('name' => 'Sal-Tech Embalaje SL.', 'products_count' => 2),
+        array('name' => 'Sal-Tech HKG Ltd.', 'products_count' => 8),
+      );
+
+      foreach ($suppliers as $supplier):
+        ?>
+        <label
+          class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-gray-200">
+          <input type="checkbox" class="w-4 h-4 text-red-700 border-gray-300 rounded focus:ring-red-700 cursor-pointer"
+            disabled>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900"><?php echo esc_html($supplier['name']); ?></p>
+            <p class="text-xs text-gray-500"><?php echo $supplier['products_count']; ?> products</p>
+          </div>
+        </label>
+      <?php endforeach; ?>
+    </div>
+    <div class="mt-4 pt-4 border-t border-gray-200">
+      <p class="text-xs text-gray-500 italic flex items-center gap-2">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Supplier filtering coming soon
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.mobile-tab');
+    const productsView = document.querySelector('#mobile-categories').nextElementSibling; // The main products grid
+    const categoriesView = document.getElementById('mobile-categories');
+    const suppliersView = document.getElementById('mobile-suppliers');
+
+    // Check if a category is selected
+    const hasSelectedCategory = <?php echo $selected_category ? 'true' : 'false'; ?>;
+
+    // Set initial state based on URL
+    if (hasSelectedCategory && window.innerWidth < 1024) {
+      // If category is selected, show products view
+      setActiveTab('products');
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function () {
+        const tabName = this.getAttribute('data-tab');
+        setActiveTab(tabName);
+      });
+    });
+
+    function setActiveTab(tabName) {
+      // Update tab styles
+      tabs.forEach(t => {
+        if (t.getAttribute('data-tab') === tabName) {
+          t.classList.add('bg-gray-700', 'text-white');
+          t.classList.remove('text-gray-700', 'hover:bg-gray-50');
+        } else {
+          t.classList.remove('bg-gray-700', 'text-white');
+          t.classList.add('text-gray-700', 'hover:bg-gray-50');
+        }
+      });
+
+      // Show/hide views
+      if (tabName === 'products') {
+        categoriesView.classList.add('hidden');
+        suppliersView.classList.add('hidden');
+        // Products grid is always visible, just scroll to it
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (tabName === 'categories') {
+        categoriesView.classList.remove('hidden');
+        suppliersView.classList.add('hidden');
+      } else if (tabName === 'suppliers') {
+        categoriesView.classList.add('hidden');
+        suppliersView.classList.remove('hidden');
+      }
+    }
+  });
+</script>
+
+<style>
+  /* Mobile tab active state */
+  .mobile-tab {
+    position: relative;
+  }
+
+  .mobile-tab.active {
+    background-color: #B91C1C;
+    color: white;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar for mobile views */
+  #mobile-categories .overflow-y-auto::-webkit-scrollbar,
+  #mobile-suppliers .overflow-y-auto::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #mobile-categories .overflow-y-auto::-webkit-scrollbar-track,
+  #mobile-suppliers .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  #mobile-categories .overflow-y-auto::-webkit-scrollbar-thumb,
+  #mobile-suppliers .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  #mobile-categories .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+  #mobile-suppliers .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+</style>
+
+<div class="flex gap-8">
+
+  <!-- FILTER SIDEBAR -->
+  <aside class="hidden lg:block w-64 flex-shrink-0">
+    <div class="sticky top-24 space-y-6">
+
+      <!-- Categories Filter -->
+      <div class="bg-white shadow-sm rounded-md">
+        <div class="bg-gray-200 px-5 py-4 rounded-md">
+          <h3 class="text-sm font-bold text-black uppercase tracking-wide flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+            </svg>
+            Categories
+          </h3>
+        </div>
+
+        <div class="p-4 max-h-[800px] overflow-y-auto">
+          <?php
+          // Get all product categories
+          $categories = get_terms([
+            'taxonomy' => 'product_cat',
+            'hide_empty' => true,
+            'parent' => 0,
+          ]);
+
+          function display_category_tree($category, $level = 0, $selected_cat)
+          {
+            if ($level > 3)
+              return; // Limit to 4 levels (0-3)
+          
+            $indent = $level * 1;
+            $is_selected = ($selected_cat === $category->slug);
+            $has_children = get_terms([
+              'taxonomy' => 'product_cat',
+              'hide_empty' => true,
+              'parent' => $category->term_id,
+            ]);
+
+            echo '<div class="category-item" style="padding-left: ' . $indent . 'rem;">';
+            echo '<a href="' . add_query_arg('product_cat', $category->slug) . '" 
+                     class="flex items-center justify-between py-2 px-3 text-sm hover:bg-gray-50 transition-colors ' .
+              ($is_selected ? 'bg-gray-50 text-red-800 font-semibold' : 'border-transparent text-gray-700') . '">';
+            echo '<span class="flex items-center gap-2">';
+            if (!empty($has_children)) {
+              echo '<svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>';
+            }
+            echo esc_html($category->name);
+            echo '</span>';
+            echo '<span class="text-xs bg-gray-100 px-2 py-0.5 font-bold text-gray-600">' . $category->count . '</span>';
+            echo '</a>';
+
+            // Display children recursively
+            if (!empty($has_children)) {
+              foreach ($has_children as $child) {
+                display_category_tree($child, $level + 1, $selected_cat);
+              }
+            }
+
+            echo '</div>';
+          }
+
+          if (!empty($categories)) {
+            foreach ($categories as $category) {
+              if ($category->slug === 'uncategorized')
+                continue;
+              display_category_tree($category, 0, $selected_category);
+            }
+          }
+          ?>
+        </div>
+
+        <?php if ($selected_category): ?>
+          <div class="p-4 border-t">
+            <a href="<?php echo strtok($_SERVER['REQUEST_URI'], '?'); ?>"
+              class="inline-flex items-center gap-2 text-sm text-red-800 hover:text-red-900 font-semibold">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear Filter
+            </a>
+          </div>
+        <?php endif; ?>
+      </div>
+
+      <!-- Suppliers Filter (Placeholder) -->
+      <div class="bg-white shadow-sm rounded-md">
+        <div class="bg-gray-200 px-5 py-4  rounded-md">
+          <h3 class="text-sm font-bold text-black uppercase tracking-wide flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+            Suppliers
+          </h3>
+        </div>
+
+        <div class="p-4 max-h-[400px] overflow-y-auto space-y-2">
+          <?php foreach ($suppliers as $supplier): ?>
+            <label
+              class="flex items-center gap-3 p-2 hover:bg-gray-50 transition-colors cursor-pointer border-transparent">
+              <input type="checkbox" class="w-4 h-4 text-red-800 border-gray-300 focus:ring-red-800 cursor-pointer"
+                disabled>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700"><?php echo esc_html($supplier['name']); ?></p>
+                <p class="text-xs text-gray-500"><?php echo $supplier['products_count']; ?> products</p>
+              </div>
+            </label>
+          <?php endforeach; ?>
+
+          <div class="pt-3 border-t">
+            <p class="text-xs text-gray-500 italic">
+              <svg class="w-4 h-4 inline text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Supplier filtering coming soon
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- PRODUCTS GRID -->
+  <div class="flex-1 min-w-0">
+    <?php if ($loop->have_posts()): ?>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <?php while ($loop->have_posts()):
+          $loop->the_post();
+          global $product; ?>
+          <div
+            class="relative bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
+
+            <!-- Product Image -->
+            <a href="<?php the_permalink(); ?>" class="block relative overflow-hidden bg-gray-100 aspect-square">
+              <?php
+              if (has_post_thumbnail()) {
+                echo get_the_post_thumbnail($product->get_id(), 'woocommerce_thumbnail', [
+                  'class' => 'w-full h-full object-cover'
+                ]);
+              } else {
+                echo '<div class="w-full h-full flex items-center justify-center bg-gray-200">';
+                echo '<svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
+                echo '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+                echo '</div>';
+              }
+              ?>
+
+              <!-- Sale Badge -->
+              <?php if ($product->is_on_sale()): ?>
+                <span class="absolute top-2 right-2 px-2 py-1 bg-red-700 text-white text-xs font-bold rounded-md shadow-md">
+                  SALE
+                </span>
+              <?php endif; ?>
+
+              <!-- Stock Badge -->
+              <?php if (!$product->is_in_stock()): ?>
+                <span class="absolute top-2 left-2 px-2 py-1 bg-gray-900 text-white text-xs font-bold rounded-md shadow-md">
+                  OUT OF STOCK
+                </span>
+              <?php endif; ?>
+            </a>
+
+            <!-- Product Info -->
+            <div class="p-3 sm:p-4 flex flex-col flex-grow">
+              <!-- Product Title -->
+              <h3 class="text-sm font-medium text-gray-900 mb-2 line-clamp-2 min-h-[40px]">
+                <a href="<?php the_permalink(); ?>" class="hover:text-red-600 transition-colors">
+                  <?php the_title(); ?>
+                </a>
+              </h3>
+
+              <!-- Rating -->
+              <?php if (wc_review_ratings_enabled() && $product->get_rating_count()): ?>
+                <div class="flex items-center mb-2">
+                  <div class="flex items-center text-yellow-400">
+                    <?php echo wc_get_rating_html($product->get_average_rating()); ?>
+                  </div>
+                  <span class="ml-1 text-xs text-gray-500">(<?php echo $product->get_rating_count(); ?>)</span>
+                </div>
+              <?php endif; ?>
+
+              <!-- Price -->
+              <?php
+              $product_price = $product->get_price();
+              $is_zero_price = empty($product_price) || floatval($product_price) == 0;
+              ?>
+
+              <?php if (!$is_zero_price): ?>
+                <div class="mb-3 text-base sm:text-md font-bold text-gray-900">
+                  <?php echo $product->get_price_html(); ?>
+                </div>
+              <?php endif; ?>
+
+              <!-- Add to Cart Button -->
+              <div class="mt-auto pt-2">
+                <?php
+                $product_price = $product->get_price();
+
+                // Check if price is 0 or empty
+                if (empty($product_price) || $product_price == 0):
+                  ?>
+                  <!-- Request Price Button -->
+                  <a href="mailto:support@sal-tech.com?subject=Price Request for <?php echo urlencode(get_the_title()); ?>&body=I would like to request pricing information for: <?php echo urlencode(get_the_title()); ?> (Product ID: <?php echo $product->get_id(); ?>)"
+                    class="request-btn gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Request Price
+                  </a>
+                <?php else: ?>
+                  <!-- Regular Add to Cart -->
+                  <?php woocommerce_template_loop_add_to_cart(); ?>
+                <?php endif; ?>
+              </div>
+            </div>
+          </div>
+        <?php endwhile; ?>
+      </div>
+
+      <style>
+        /* Rating stars */
+        .star-rating {
+          display: inline-flex;
+        }
+
+        .star-rating span {
+          color: #FCD34D;
+        }
+
+        /* Line clamp for product titles */
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        /* Price styling */
+        .price {
+          color: inherit;
+        }
+
+        .price del {
+          opacity: 0.5;
+          font-size: 0.875em;
+        }
+
+        .price ins {
+          text-decoration: none;
+          color: #B91C1C;
+        }
+
+        /* Add to cart button base styles */
+        a.request-btn,
+        a.button.add_to_cart_button,
+        a.button.product_type_simple,
+        a.button.product_type_variable,
+        a.button.product_type_grouped,
+        a.button.product_type_external {
+          width: 100% !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0.5rem 0.75rem !important;
+          font-size: 0.875rem !important;
+          font-weight: 500 !important;
+          border-radius: 0.375rem !important;
+          transition: all 0.2s !important;
+          border: none !important;
+          cursor: pointer !important;
+          background-color: #4CAF50 !important;
+          color: white !important;
+          text-decoration: none !important;
+        }
+
+        a.request-btn:hover,
+        a.button.add_to_cart_button:hover,
+        a.button.product_type_simple:hover,
+        a.button.product_type_variable:hover,
+        a.button.product_type_grouped:hover,
+        a.button.product_type_external:hover {
+          background-color: #409142 !important;
+          color: white !important;
+        }
+
+        /* Add to cart button icons */
+        a.add_to_cart_button:before,
+        a.product_type_simple:before,
+        a.product_type_variable:before {
+          content: '';
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          margin-right: 6px;
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+        }
+
+        a.add_to_cart_button:before,
+        a.product_type_simple:before {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'/%3E%3C/svg%3E");
+        }
+
+        a.product_type_variable:before {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'/%3E%3C/svg%3E");
+        }
+
+        /* Out of stock button */
+        a.button.add_to_cart_button[disabled],
+        a.button.add_to_cart_button.disabled,
+        a.button.out-of-stock {
+          background-color: #D1D5DB !important;
+          color: #6B7280 !important;
+          cursor: not-allowed !important;
+          opacity: 0.6 !important;
+          pointer-events: none !important;
+        }
+
+        /* Custom scrollbar */
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 4px;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+        }
+
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+      </style>
+
+      <!-- Pagination -->
+      <?php if ($loop->max_num_pages > 1): ?>
+        <div class="mt-10 flex justify-center">
+          <nav class="isolate inline-flex -space-x-px rounded-lg shadow-sm" aria-label="Pagination">
+            <?php
+            // Get pagination array
+            $pagination = paginate_links([
+              'total' => $loop->max_num_pages,
+              'current' => $paged,
+              'prev_text' => false,
+              'next_text' => false,
+              'type' => 'array',
+              'mid_size' => 2,
+              'add_args' => ['product_cat' => $selected_category]
+            ]);
+
+            if ($pagination) {
+              // Previous button
+              if ($paged > 1) {
+                echo '<a href="' . get_pagenum_link($paged - 1) . ($selected_category ? '&product_cat=' . $selected_category : '') . '" class="relative inline-flex items-center rounded-l-lg px-3 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">';
+                echo '<span class="sr-only">Previous</span>';
+                echo '<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/></svg>';
+                echo '</a>';
+              }
+
+              // Page numbers
+              foreach ($pagination as $page) {
+                if (strpos($page, 'current') !== false) {
+                  // Current page
+                  $number = strip_tags($page);
+                  echo '<span aria-current="page" class="relative z-10 inline-flex items-center bg-gray-700 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">' . $number . '</span>';
+                } elseif (strpos($page, 'dots') !== false) {
+                  // Dots
+                  echo '<span class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>';
+                } else {
+                  // Regular page
+                  echo str_replace('class="', 'class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ', $page);
+                }
+              }
+
+              // Next button
+              if ($paged < $loop->max_num_pages) {
+                echo '<a href="' . get_pagenum_link($paged + 1) . ($selected_category ? '&product_cat=' . $selected_category : '') . '" class="relative inline-flex items-center rounded-r-lg px-3 py-2 text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">';
+                echo '<span class="sr-only">Next</span>';
+                echo '<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg>';
+                echo '</a>';
+              }
+            }
+            ?>
+          </nav>
+        </div>
+      <?php endif; ?>
+
+    <?php else: ?>
+      <div class="text-center py-16">
+        <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900"><?php esc_html_e('No products found', 'woocommerce'); ?></h3>
+        <p class="mt-2 text-sm text-gray-500">
+          <?php esc_html_e('Try adjusting your filters or check back later.', 'woocommerce'); ?>
+        </p>
+        <?php if ($selected_category): ?>
+          <a href="<?php echo strtok($_SERVER['REQUEST_URI'], '?'); ?>"
+            class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-800 text-white font-semibold hover:bg-red-900">
+            Clear Filters
+          </a>
+        <?php endif; ?>
+      </div>
+    <?php endif;
+
+    wp_reset_postdata();
+    ?>
+  </div>
+</div>

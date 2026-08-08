@@ -1,0 +1,5 @@
+<?php
+get_header('shop');
+wc_get_template_part('archive', 'product');
+get_footer('shop');
+?>
