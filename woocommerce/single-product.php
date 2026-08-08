@@ -8,7 +8,7 @@ while (have_posts()):
   global $product; ?>
 
   <div class="bg-gray-50 py-8 sm:py-12 lg:py-6 min-h-screen">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto container px-4 sm:px-6 lg:px-8">
 
       <!-- Breadcrumbs -->
       <div class="mb-6">
