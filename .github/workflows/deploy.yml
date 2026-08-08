@@ -1,0 +1,21 @@
+name: Deploy Theme to Live Server
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to live server via SFTP
+        uses: presshold/action-sftp-upload@v2
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USER }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          local_path: './'
+          remote_path: '/staging310726/wp-content/themes/chris-tailwind-woo-backup/'
+          delete: true
