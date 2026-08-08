@@ -167,7 +167,6 @@ if ($related_products): ?>
       padding: 0.5rem 0.75rem !important;
       font-size: 0.875rem !important;
       font-weight: 500 !important;
-      border-radius: 0.375rem !important;
       transition: all 0.2s !important;
       border: none !important;
       cursor: pointer !important;
