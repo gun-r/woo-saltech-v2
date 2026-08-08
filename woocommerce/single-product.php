@@ -17,10 +17,46 @@ while (have_posts()):
 
       <!-- Main Product Section -->
       <div class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
+
+          <!-- Categories Sidebar (Left) -->
+          <div class="order-1 lg:col-span-1 hidden lg:block">
+            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 sticky top-8">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Kategorier
+              </h3>
+
+              <?php 
+              $categories = wp_get_post_terms($product->get_id(), 'product_cat');
+              if (!empty($categories) && !is_wp_error($categories)): 
+              ?>
+                <nav class="space-y-2">
+                  <?php foreach ($categories as $category): ?>
+                    <a href="<?php echo esc_url(get_term_link($category)); ?>" 
+                       class="block px-4 py-3 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200 group">
+                      <div class="flex items-center justify-between">
+                        <span class="font-medium text-sm"><?php echo esc_html($category->name); ?></span>
+                        <svg class="w-4 h-4 text-gray-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                      <?php if ($category->count > 0): ?>
+                        <span class="text-xs text-gray-500 mt-1 block"><?php echo $category->count; ?> produkt<?php echo $category->count !== 1 ? 'er' : ''; ?></span>
+                      <?php endif; ?>
+                    </a>
+                  <?php endforeach; ?>
+                </nav>
+              <?php else: ?>
+                <p class="text-gray-500 text-sm">Ingen kategorier</p>
+              <?php endif; ?>
+            </div>
+          </div><!-- /.order-1 Categories Sidebar -->
 
           <!-- Product Gallery -->
-          <div class="order-1 lg:col-span-1">
+          <div class="order-2 lg:col-span-2">
             <!-- Main Gallery Slider -->
             <div class="swiper mySwiper2 mb-4 overflow-hidden bg-gray-100">
               <div class="swiper-wrapper" id="main-swiper-wrapper">
@@ -74,7 +110,7 @@ while (have_posts()):
           </div>
 
           <!-- Product Info -->
-          <div class="order-2 lg:col-span-1 lg:sticky lg:top-8 lg:self-start">
+          <div class="order-3 lg:col-span-1 lg:sticky lg:top-8 lg:self-start">
 
             <!-- Product Title -->
             <h1 class="text-2xl sm:text-2xl font-semibold text-gray-900 mb-4"><?php the_title(); ?></h1>
@@ -209,43 +245,7 @@ while (have_posts()):
               <?php endif; ?>
             </div>
 
-          </div><!-- /.order-2 -->
-
-          <!-- Categories Sidebar -->
-          <div class="order-3 lg:col-span-1 hidden lg:block">
-            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 sticky top-8">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Kategorier
-              </h3>
-
-              <?php 
-              $categories = wp_get_post_terms($product->get_id(), 'product_cat');
-              if (!empty($categories) && !is_wp_error($categories)): 
-              ?>
-                <nav class="space-y-2">
-                  <?php foreach ($categories as $category): ?>
-                    <a href="<?php echo esc_url(get_term_link($category)); ?>" 
-                       class="block px-4 py-3 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200 group">
-                      <div class="flex items-center justify-between">
-                        <span class="font-medium text-sm"><?php echo esc_html($category->name); ?></span>
-                        <svg class="w-4 h-4 text-gray-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                      <?php if ($category->count > 0): ?>
-                        <span class="text-xs text-gray-500 mt-1 block"><?php echo $category->count; ?> produkt<?php echo $category->count !== 1 ? 'er' : ''; ?></span>
-                      <?php endif; ?>
-                    </a>
-                  <?php endforeach; ?>
-                </nav>
-              <?php else: ?>
-                <p class="text-gray-500 text-sm">Ingen kategorier</p>
-              <?php endif; ?>
-            </div>
-          </div><!-- /.order-3 Categories Sidebar -->
+          </div><!-- /.order-3 -->
         </div>
       </div>
 
