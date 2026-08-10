@@ -7,7 +7,7 @@
     <?php wp_head(); ?>
     <!-- Tailwind CSS -->
     <!--script src="https://cdn.tailwindcss.com"></script-->
-  	<script src="/wp-content/themes/chris-tailwind-woo-backup/tailwindcss.js"></script>
+    <script src="/wp-content/themes/chris-tailwind-woo-backup/tailwindcss.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -119,7 +119,7 @@
 
                 <!-- Drawer Content -->
                 <div class="p-4">
-                  
+
                     <a href="<?php echo esc_url(home_url('/products-a-z')); ?>"
                         class="px-3 text-base font-medium text-gray-900 hover:text-red-600 transition-colors">
                         Produkter A-Å
@@ -260,7 +260,7 @@
                     <div class="border-t border-gray-200 pt-6 mt-6">
                         <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Kontakt os</p>
                         <div class="space-y-2">
-                          <?php echo do_shortcode('[mlt_language_switcher]'); ?>
+                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                             <a href="mailto:support@sal-tech.com"
                                 class="flex items-center text-sm text-gray-600 hover:text-red-600">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +299,7 @@
                                 <li><a href="/about-us" class="hover:text-gray-100">Om os</a></li>
                             </ul>
                             <div class="flex items-center space-x-5">
-                              <?php echo do_shortcode('[mlt_language_switcher]'); ?>
+                                <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                                 <a href="mailto:support@sal-tech.com"
                                     class="text-sm text-white hover:text-gray-100">support@sal-tech.com</a>
                                 <a href="tel:+4570272220" class="text-sm text-white hover:text-gray-100">+45
@@ -354,30 +354,30 @@
                         <div class="flex h-20 items-center justify-between lg:h-24">
                             <!-- Logo -->
                             <div class="flex-shrink-0">
-    <?php
-    $mlt_logo_url = function_exists('mlt_get_current_language_logo_url') ? mlt_get_current_language_logo_url() : '';
-    if ($mlt_logo_url):
-    ?>
-        <a href="<?= esc_url(home_url('/')) ?>">
-            <img src="<?= esc_url($mlt_logo_url) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
-                class="h-12 w-auto lg:h-14" id="headerLogo">
-        </a>
-    <?php else:
-        $logo_id = get_theme_mod('custom_logo');
-        $logo = wp_get_attachment_image_src($logo_id, 'h-14 w-auto');
-        if ($logo): ?>
-            <a href="<?= esc_url(home_url('/')) ?>">
-                <img src="<?= esc_url($logo[0]) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
-                    class="h-12 w-auto lg:h-14" id="headerLogo">
-            </a>
-        <?php else: ?>
-            <a href="<?= esc_url(home_url('/')) ?>"
-                class="text-xl font-bold text-gray-900 lg:text-2xl">
-                <?= esc_html(get_bloginfo('name')) ?>
-            </a>
-        <?php endif;
-    endif; ?>
-</div>
+                                <?php
+                                $mlt_logo_url = function_exists('mlt_get_current_language_logo_url') ? mlt_get_current_language_logo_url() : '';
+                                if ($mlt_logo_url):
+                                    ?>
+                                    <a href="<?= esc_url(home_url('/')) ?>">
+                                        <img src="<?= esc_url($mlt_logo_url) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
+                                            class="h-12 w-auto lg:h-14" id="headerLogo">
+                                    </a>
+                                <?php else:
+                                    $logo_id = get_theme_mod('custom_logo');
+                                    $logo = wp_get_attachment_image_src($logo_id, 'h-14 w-auto');
+                                    if ($logo): ?>
+                                        <a href="<?= esc_url(home_url('/')) ?>">
+                                            <img src="<?= esc_url($logo[0]) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
+                                                class="h-12 w-auto lg:h-14" id="headerLogo">
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?= esc_url(home_url('/')) ?>"
+                                            class="text-xl font-bold text-gray-900 lg:text-2xl">
+                                            <?= esc_html(get_bloginfo('name')) ?>
+                                        </a>
+                                    <?php endif;
+                                endif; ?>
+                            </div>
 
                             <!-- Mobile Cart + Menu Button -->
                             <div class="flex items-center space-x-3 lg:hidden">
@@ -464,10 +464,18 @@
                     </div>
                 </div>
 
-                <!-- Desktop Dynamic Menu -->
+                <!-- Desktop Mega Menu -->
                 <div class="hidden lg:block bg-white">
-                    <?php echo do_shortcode('[dynamic_menu]'); ?>
+                    <?php
+                    wp_nav_menu(array(
+                        'theme_location' => 'primary',
+                        'container' => false,
+                        'menu_class' => 'flex items-center space-x-8 h-16',
+                        'fallback_cb' => false,
+                    ));
+                    ?>
                 </div>
+
             </header>
         </div>
     </div>
