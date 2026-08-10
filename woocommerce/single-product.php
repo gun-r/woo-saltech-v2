@@ -17,10 +17,10 @@ while (have_posts()):
 
       <!-- Main Product Section -->
       <div class="bg-white shadow-sm border border-gray-200 overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
 
           <!-- Categories Sidebar (Left) -->
-          <aside class="hidden lg:block lg:col-span-1">
+          <aside class="hidden lg:block w-64 flex-shrink-0">
             <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 sticky top-8">
               <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,72 +30,90 @@ while (have_posts()):
               </h3>
 
               <?php
-              function get_shop_page_url() {
-                $shop_page_id = wc_get_page_id('shop');
-                return get_permalink($shop_page_id);
+              if (!function_exists('get_shop_page_url')) {
+                function get_shop_page_url() {
+                  $shop_page_id = wc_get_page_id('shop');
+                  return get_permalink($shop_page_id);
+                }
               }
 
-              function get_category_url($category_slug) {
-                return add_query_arg('product_cat', $category_slug, get_shop_page_url());
+              if (!function_exists('get_category_url')) {
+                function get_category_url($category_slug) {
+                  return add_query_arg('product_cat', $category_slug, get_shop_page_url());
+                }
               }
 
-              function category_tree_contains_selected($category, $selected_slugs) {
-                $children = get_terms([
-                  'taxonomy' => 'product_cat',
-                  'hide_empty' => true,
-                  'parent' => $category->term_id,
-                ]);
+              if (!function_exists('stpp_sidebar_category_tree_contains_selected')) {
+                function stpp_sidebar_category_tree_contains_selected($category, $selected_slugs) {
+                  $children = get_terms([
+                    'taxonomy' => 'product_cat',
+                    'hide_empty' => true,
+                    'parent' => $category->term_id,
+                  ]);
 
-                foreach ($children as $child) {
-                  if (in_array($child->slug, $selected_slugs, true)) {
-                    return true;
+                  foreach ($children as $child) {
+                    if (in_array($child->slug, $selected_slugs, true)) {
+                      return true;
+                    }
+                    if (stpp_sidebar_category_tree_contains_selected($child, $selected_slugs)) {
+                      return true;
+                    }
                   }
-                  if (category_tree_contains_selected($child, $selected_slugs)) {
-                    return true;
-                  }
+
+                  return false;
                 }
-
-                return false;
               }
 
-              function display_category_tree($category, $level = 0, $selected_slugs = []) {
-                if ($level > 3) {
-                  return;
-                }
-
-                $indent = $level * 0.75;
-                $is_selected = in_array($category->slug, $selected_slugs, true);
-                $has_selected_descendant = category_tree_contains_selected($category, $selected_slugs);
-                $category_classes = $is_selected ? 'bg-red-600 text-white shadow-sm' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
-                $has_children = get_terms([
-                  'taxonomy' => 'product_cat',
-                  'hide_empty' => true,
-                  'parent' => $category->term_id,
-                ]);
-
-                echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . esc_attr($indent) . 'rem;">';
-                echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-3 px-3 text-sm rounded-lg transition-all duration-200 ' . $category_classes . '">';
-                echo '<span class="flex items-center gap-2">';
-                if ($is_selected) {
-                  echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>';
-                }
-                echo esc_html($category->name) . '</span>';
-
-                if (!empty($has_children)) {
-                  echo '<span class="text-xs bg-gray-100 px-2 py-1 rounded-full font-semibold text-gray-600">' . esc_html($category->count) . '</span>';
-                }
-
-                echo '</a>';
-
-                if (!empty($has_children)) {
-                  echo '<div class="category-children' . ($has_selected_descendant ? ' expanded' : '') . ' mt-1">';
-                  foreach ($has_children as $child) {
-                    display_category_tree($child, $level + 1, $selected_slugs);
+              if (!function_exists('stpp_sidebar_display_category_tree')) {
+                function stpp_sidebar_display_category_tree($category, $level = 0, $selected_slugs = []) {
+                  if ($level > 3) {
+                    return;
                   }
+
+                  $indent = $level * 0.75;
+                  $is_selected = in_array($category->slug, $selected_slugs, true);
+                  $has_selected_descendant = stpp_sidebar_category_tree_contains_selected($category, $selected_slugs);
+                  $has_children = get_terms([
+                    'taxonomy' => 'product_cat',
+                    'hide_empty' => true,
+                    'parent' => $category->term_id,
+                  ]);
+
+                  $cat_id = 'stpp-cat-' . $category->term_id;
+                  $active_classes = $is_selected ? 'bg-red-600 text-white shadow-sm' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
+
+                  echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . esc_attr($indent) . 'rem;">';
+
+                  if (!empty($has_children)) {
+                    echo '<div class="flex items-center justify-between group transition-all duration-200 ' . ($is_selected ? 'bg-red-600 text-white' : 'hover:bg-gray-50') . '">';
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center gap-2 text-sm flex-1 py-2.5 px-1 transition-colors ' . ($is_selected ? 'text-white font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
+                    echo '<span class="flex-1">' . esc_html($category->name) . '</span>';
+                    echo '</a>';
+                    echo '<button type="button" class="category-toggle' . ($has_selected_descendant ? ' expanded' : '') . ' p-2 mr-1 hover:bg-gray-100 rounded-md transition-all duration-200" data-target="' . esc_attr($cat_id) . '" aria-expanded="' . ($has_selected_descendant ? 'true' : 'false') . '">';
+                    echo '<svg class="w-4 h-4 text-gray-400 toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>';
+                    echo '</button>';
+                    echo '</div>';
+
+                    echo '<div id="' . esc_attr($cat_id) . '" class="category-children' . ($has_selected_descendant ? ' expanded' : '') . ' mt-1">';
+                    foreach ($has_children as $child) {
+                      stpp_sidebar_display_category_tree($child, $level + 1, $selected_slugs);
+                    }
+                    echo '</div>';
+                  } else {
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-2.5 px-1 text-sm rounded-lg transition-all duration-200 ' . $active_classes . '">';
+                    echo '<span class="flex items-center gap-2">';
+                    if ($is_selected) {
+                      echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>';
+                    }
+                    echo esc_html($category->name);
+                    echo '</span>';
+                    echo '</a>';
+                  }
+
                   echo '</div>';
                 }
-
-                echo '</div>';
               }
 
               $current_product_categories = wp_get_post_terms($product->get_id(), 'product_cat');
@@ -127,7 +145,7 @@ while (have_posts()):
                     if ($category->slug === 'uncategorized') {
                       continue;
                     }
-                    display_category_tree($category, 0, $selected_category_slugs);
+                    stpp_sidebar_display_category_tree($category, 0, $selected_category_slugs);
                   endforeach; ?>
                 </div>
               <?php else: ?>
@@ -136,7 +154,7 @@ while (have_posts()):
             </div>
           </aside><!-- /.Categories Sidebar -->
 
-          <div class="lg:col-span-2 space-y-8">
+          <div class="flex-1 min-w-0 space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <!-- Product Gallery -->
               <div class="lg:col-span-2">
@@ -416,10 +434,73 @@ while (have_posts()):
     .woocommerce-tabs .panel {
       @apply prose prose-sm max-w-none;
     }
+
+    /* Category sidebar collapse/expand */
+    .category-children {
+      display: none;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .category-children.expanded {
+      display: block;
+      animation: stppSlideDown 0.3s ease-out;
+    }
+
+    @keyframes stppSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .category-toggle {
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .category-toggle:hover {
+      background-color: #f3f4f6;
+    }
+
+    .category-toggle .toggle-icon {
+      transition: transform 0.3s ease, color 0.2s ease;
+    }
+
+    .category-toggle.expanded .toggle-icon {
+      transform: rotate(90deg);
+      color: #B91C1C;
+    }
+
+    .category-toggle:hover .toggle-icon {
+      color: #B91C1C;
+    }
   </style>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+      // ── Category sidebar toggle ────────────────────────────────────────────
+      document.querySelectorAll('.category-toggle').forEach(function (toggle) {
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          var targetId = this.getAttribute('data-target');
+          var targetElement = document.getElementById(targetId);
+          if (!targetElement) return;
+
+          targetElement.classList.toggle('expanded');
+          this.classList.toggle('expanded');
+          this.setAttribute('aria-expanded', targetElement.classList.contains('expanded'));
+        });
+      });
 
       // ── Swiper initialisation ──────────────────────────────────────────────
       var thumbsSwiper = new Swiper('.mySwiperThumbs', {
