@@ -628,7 +628,7 @@ $breadcrumbs = build_product_breadcrumb($selected_category, $search_term);
                   foreach ($categories as $category) {
                     if ($category->slug === 'uncategorized')
                       continue;
-                    display_category_tree($category, 0, $selected_category);
+                    display_category_tree($category, $selected_category);
                   }
                 }
                 ?>
