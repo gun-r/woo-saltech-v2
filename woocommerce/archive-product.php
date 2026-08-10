@@ -553,13 +553,35 @@ $breadcrumbs = build_product_breadcrumb($selected_category, $search_term);
                   'parent' => 0,
                 ]);
 
-                function display_category_tree($category, $level = 0, $selected_cat)
+                function category_tree_contains_selected($category, $selected_cat)
                 {
-                  if ($level > 3)
+                  $children = get_terms([
+                    'taxonomy' => 'product_cat',
+                    'hide_empty' => true,
+                    'parent' => $category->term_id,
+                  ]);
+
+                  foreach ($children as $child) {
+                    if ($selected_cat === $child->slug) {
+                      return true;
+                    }
+                    if (category_tree_contains_selected($child, $selected_cat)) {
+                      return true;
+                    }
+                  }
+
+                  return false;
+                }
+
+                function display_category_tree($category, $selected_cat, $level = 0)
+                {
+                  if ($level > 3) {
                     return; // Limit to 4 levels (0-3)
-                
+                  }
+
                   $indent = $level * 0.75;
                   $is_selected = ($selected_cat === $category->slug);
+                  $has_selected_descendant = category_tree_contains_selected($category, $selected_cat);
                   $has_children = get_terms([
                     'taxonomy' => 'product_cat',
                     'hide_empty' => true,
@@ -567,40 +589,35 @@ $breadcrumbs = build_product_breadcrumb($selected_category, $search_term);
                   ]);
 
                   $cat_id = 'cat-' . $category->term_id;
+                  $active_classes = $is_selected ? 'bg-red-600 text-white shadow-sm' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
 
-                  echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . $indent . 'rem;">';
+                  echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . esc_attr($indent) . 'rem;">';
 
-                  // Parent category with toggle if it has children
                   if (!empty($has_children)) {
-                    echo '<div class="flex items-center justify-between group hover:bg-gray-50 transition-all duration-200 ' . ($is_selected ? 'bg-gray-100' : '') . '">';
-                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" 
-                       class="flex items-center gap-2 text-sm flex-1 py-2.5 px-1 transition-colors ' .
-                      ($is_selected ? 'text-slate-800 font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
+                    echo '<div class="flex items-center justify-between group transition-all duration-200 ' . ($is_selected ? 'bg-red-600 text-white' : 'hover:bg-gray-50') . '">';
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center gap-2 text-sm flex-1 py-2.5 px-1 transition-colors ' . ($is_selected ? 'text-white font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
                     echo '<span class="flex-1">' . esc_html($category->name) . '</span>';
-                   // echo '<span class="text-xs bg-gray-100 group-hover:bg-gray-200 px-2 py-1 rounded-full font-bold text-gray-600 transition-colors">' . $category->count . '</span>';
                     echo '</a>';
-                    echo '<button class="category-toggle p-2 mr-1 hover:bg-gray-100 rounded-md transition-all duration-200" data-target="' . $cat_id . '" aria-expanded="false">';
+                    echo '<button class="category-toggle p-2 mr-1 hover:bg-gray-100 rounded-md transition-all duration-200" data-target="' . esc_attr($cat_id) . '" aria-expanded="false">';
                     echo '<svg class="w-4 h-4 text-gray-400 toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>';
                     echo '</button>';
                     echo '</div>';
 
-                    // Children container
-                    echo '<div id="' . $cat_id . '" class="category-children mt-1">';
+                    echo '<div id="' . esc_attr($cat_id) . '" class="category-children' . ($has_selected_descendant ? ' expanded' : '') . ' mt-1">';
                     foreach ($has_children as $child) {
-                      display_category_tree($child, $level + 1, $selected_cat);
+                      display_category_tree($child, $selected_cat, $level + 1);
                     }
                     echo '</div>';
                   } else {
-                    // Leaf category without children
-                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" 
-                       class="flex items-center justify-between py-2.5 px-1 text-sm rounded-lg hover:bg-gray-50 transition-all duration-200 group ' .
-                      ($is_selected ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-00 hover:text-red-700') . '">';
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-2.5 px-1 text-sm rounded-lg transition-all duration-200 ' . $active_classes . '">';
                     echo '<span class="flex items-center gap-2">';
+                    if ($is_selected) {
+                      echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>';
+                    }
                     echo esc_html($category->name);
                     echo '</span>';
-                    //echo '<span class="text-xs bg-gray-100 group-hover:bg-gray-200 px-2 py-1 rounded-full font-bold text-gray-600 transition-colors">' . $category->count . '</span>';
                     echo '</a>';
                   }
 

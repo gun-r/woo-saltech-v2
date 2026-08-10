@@ -29,26 +29,107 @@ while (have_posts()):
                 Kategorier
               </h3>
 
-              <?php 
-              $categories = wp_get_post_terms($product->get_id(), 'product_cat');
-              if (!empty($categories) && !is_wp_error($categories)): 
+              <?php
+              function get_shop_page_url() {
+                $shop_page_id = wc_get_page_id('shop');
+                return get_permalink($shop_page_id);
+              }
+
+              function get_category_url($category_slug) {
+                return add_query_arg('product_cat', $category_slug, get_shop_page_url());
+              }
+
+              function category_tree_contains_selected($category, $selected_slugs) {
+                $children = get_terms([
+                  'taxonomy' => 'product_cat',
+                  'hide_empty' => true,
+                  'parent' => $category->term_id,
+                ]);
+
+                foreach ($children as $child) {
+                  if (in_array($child->slug, $selected_slugs, true)) {
+                    return true;
+                  }
+                  if (category_tree_contains_selected($child, $selected_slugs)) {
+                    return true;
+                  }
+                }
+
+                return false;
+              }
+
+              function display_category_tree($category, $level = 0, $selected_slugs = []) {
+                if ($level > 3) {
+                  return;
+                }
+
+                $indent = $level * 0.75;
+                $is_selected = in_array($category->slug, $selected_slugs, true);
+                $has_selected_descendant = category_tree_contains_selected($category, $selected_slugs);
+                $category_classes = $is_selected ? 'bg-red-600 text-white shadow-sm' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
+                $has_children = get_terms([
+                  'taxonomy' => 'product_cat',
+                  'hide_empty' => true,
+                  'parent' => $category->term_id,
+                ]);
+
+                echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . esc_attr($indent) . 'rem;">';
+                echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-3 px-3 text-sm rounded-lg transition-all duration-200 ' . $category_classes . '">';
+                echo '<span class="flex items-center gap-2">';
+                if ($is_selected) {
+                  echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>';
+                }
+                echo esc_html($category->name) . '</span>';
+
+                if (!empty($has_children)) {
+                  echo '<span class="text-xs bg-gray-100 px-2 py-1 rounded-full font-semibold text-gray-600">' . esc_html($category->count) . '</span>';
+                }
+
+                echo '</a>';
+
+                if (!empty($has_children)) {
+                  echo '<div class="category-children' . ($has_selected_descendant ? ' expanded' : '') . ' mt-1">';
+                  foreach ($has_children as $child) {
+                    display_category_tree($child, $level + 1, $selected_slugs);
+                  }
+                  echo '</div>';
+                }
+
+                echo '</div>';
+              }
+
+              $current_product_categories = wp_get_post_terms($product->get_id(), 'product_cat');
+              $selected_category_slugs = [];
+              if (!empty($current_product_categories) && !is_wp_error($current_product_categories)) {
+                foreach ($current_product_categories as $product_category) {
+                  $selected_category_slugs[] = $product_category->slug;
+                  $ancestors = get_ancestors($product_category->term_id, 'product_cat');
+                  foreach ($ancestors as $ancestor_id) {
+                    $ancestor = get_term($ancestor_id, 'product_cat');
+                    if ($ancestor && !is_wp_error($ancestor)) {
+                      $selected_category_slugs[] = $ancestor->slug;
+                    }
+                  }
+                }
+                $selected_category_slugs = array_unique($selected_category_slugs);
+              }
+
+              $categories = get_terms([
+                'taxonomy' => 'product_cat',
+                'hide_empty' => true,
+                'parent' => 0,
+              ]);
+
+              if (!empty($categories) && !is_wp_error($categories)):
               ?>
-                <nav class="space-y-2">
-                  <?php foreach ($categories as $category): ?>
-                    <a href="<?php echo esc_url(get_term_link($category)); ?>" 
-                       class="block px-4 py-3 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all duration-200 group">
-                      <div class="flex items-center justify-between">
-                        <span class="font-medium text-sm"><?php echo esc_html($category->name); ?></span>
-                        <svg class="w-4 h-4 text-gray-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                      <?php if ($category->count > 0): ?>
-                        <span class="text-xs text-gray-500 mt-1 block"><?php echo $category->count; ?> produkt<?php echo $category->count !== 1 ? 'er' : ''; ?></span>
-                      <?php endif; ?>
-                    </a>
-                  <?php endforeach; ?>
-                </nav>
+                <div class="py-2 overflow-y-auto category-sidebar-scroll">
+                  <?php foreach ($categories as $category):
+                    if ($category->slug === 'uncategorized') {
+                      continue;
+                    }
+                    display_category_tree($category, 0, $selected_category_slugs);
+                  endforeach; ?>
+                </div>
               <?php else: ?>
                 <p class="text-gray-500 text-sm">Ingen kategorier</p>
               <?php endif; ?>
