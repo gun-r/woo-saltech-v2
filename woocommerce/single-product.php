@@ -21,13 +21,17 @@ while (have_posts()):
 
           <!-- Categories Sidebar (Left) -->
           <aside class="hidden lg:block w-64 flex-shrink-0">
-            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 sticky top-8">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                Kategorier
-              </h3>
+            <div class="sticky top-8 space-y-6">
+              <div class="bg-white overflow-hidden border-t-2 border-gray-100">
+                <div class="bg-gray-200 px-5 py-4">
+                  <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                    </svg>
+                    Categories
+                  </h3>
+                </div>
 
               <?php
               if (!function_exists('get_shop_page_url')) {
@@ -149,8 +153,9 @@ while (have_posts()):
                   endforeach; ?>
                 </div>
               <?php else: ?>
-                <p class="text-gray-500 text-sm">Ingen kategorier</p>
+                <p class="text-gray-500 text-sm px-5 py-4">Ingen kategorier</p>
               <?php endif; ?>
+              </div>
             </div>
           </aside><!-- /.Categories Sidebar -->
 
@@ -357,21 +362,6 @@ while (have_posts()):
             </div>
           </div><!-- /.order-3 -->
         </div>
-      </div>
-
-      <!-- Product Tabs -->
-      <div class="mt-8 bg-white shadow-sm border border-gray-200 overflow-hidden">
-        <div class="p-6 sm:p-8">
-          <?php woocommerce_output_product_data_tabs(); ?>
-        </div>
-      </div>
-
-      <!-- Accessories -->
-      <?php echo do_shortcode('[wc_accessories]'); ?>
-
-      <!-- Related Products -->
-      <div class="mt-8">
-        <?php woocommerce_output_related_products(); ?>
       </div>
 
     </div>
