@@ -16,7 +16,7 @@ while (have_posts()):
       </div>
 
       <!-- Main Product Section -->
-      <div class="bg-white shadow-sm border border-gray-200 overflow-hidden">
+      <div class=" overflow-hidden">
         <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
 
           <!-- Categories Sidebar (Left) -->
@@ -24,11 +24,7 @@ while (have_posts()):
             <div class="sticky top-8 space-y-6">
               <div class="bg-white overflow-hidden border-t-2 border-gray-100">
                 <div class="bg-gray-200 px-5 py-4">
-                  <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                    </svg>
+                  <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">
                     Categories
                   </h3>
                 </div>
@@ -84,14 +80,14 @@ while (have_posts()):
                   ]);
 
                   $cat_id = 'stpp-cat-' . $category->term_id;
-                  $active_classes = $is_selected ? 'text-red-600 font-semibold' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
+                  $active_classes = $is_selected ? 'text-[#003D82] font-semibold' : ($has_selected_descendant ? 'text-[#003D82] font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
 
-                  echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . esc_attr($indent) . 'rem;">';
+                  echo '<div class="category-item border-b border-gray-200 min-w-0" style="padding-left: ' . esc_attr($indent) . 'rem;">';
 
                   if (!empty($has_children)) {
-                    echo '<div class="flex items-center justify-between group transition-all duration-200 ' . ($is_selected ? 'text-red-600' : 'hover:bg-gray-50') . '">';
-                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center gap-2 text-sm flex-1 py-2.5 px-1 transition-colors ' . ($is_selected ? 'text-red-600 font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
-                    echo '<span class="flex-1">' . esc_html($category->name) . '</span>';
+                    echo '<div class="flex items-center justify-between group transition-all duration-200 min-w-0 ' . ($is_selected ? 'text-[#003D82]' : 'hover:bg-gray-50') . '">';
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center gap-2 text-sm flex-1 min-w-0 py-2.5 px-1 transition-colors ' . ($is_selected ? 'text-[#003D82] font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
+                    echo '<span class="flex-1 min-w-0 break-words">' . esc_html($category->name) . '</span>';
                     echo '</a>';
                     echo '<button type="button" class="category-toggle' . ($has_selected_descendant ? ' expanded' : '') . ' p-2 mr-1 hover:bg-gray-100 rounded-md transition-all duration-200" data-target="' . esc_attr($cat_id) . '" aria-expanded="' . ($has_selected_descendant ? 'true' : 'false') . '">';
                     echo '<svg class="w-4 h-4 text-gray-400 toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,10 +102,10 @@ while (have_posts()):
                     }
                     echo '</div>';
                   } else {
-                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-2.5 px-1 text-sm rounded-lg transition-all duration-200 ' . $active_classes . '">';
-                    echo '<span class="flex items-center gap-2">';
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-2.5 px-1 text-sm rounded-lg transition-all duration-200 min-w-0 ' . $active_classes . '">';
+                    echo '<span class="flex items-center gap-2 min-w-0 break-words">';
                     if ($is_selected) {
-                      echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-red-600"></span>';
+                      echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-[#003D82] flex-shrink-0"></span>';
                     }
                     echo esc_html($category->name);
                     echo '</span>';
@@ -144,7 +140,7 @@ while (have_posts()):
 
               if (!empty($categories) && !is_wp_error($categories)):
               ?>
-                <div class="py-2 overflow-y-auto category-sidebar-scroll">
+                <div class="py-2 overflow-y-auto overflow-x-hidden category-sidebar-scroll">
                   <?php foreach ($categories as $category):
                     if ($category->slug === 'uncategorized') {
                       continue;
@@ -465,11 +461,15 @@ while (have_posts()):
 
     .category-toggle.expanded .toggle-icon {
       transform: rotate(90deg);
-      color: #B91C1C;
+      color: #003D82;
     }
 
     .category-toggle:hover .toggle-icon {
-      color: #B91C1C;
+      color: #003D82;
+    }
+
+    .category-sidebar-scroll {
+      overflow-x: hidden;
     }
   </style>
 
