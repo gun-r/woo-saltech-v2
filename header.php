@@ -35,47 +35,30 @@
             box-sizing: border-box;
         }
 
-        /* Language Switcher ([mlt_language_switcher]) — now lives in the
-           topmost Primary Menu Row on ALL breakpoints, immediately to the
-           left of the mega menu / mobile toggle button, so on mobile the
-           layout reads: [Language] [Hamburger] all in one top bar.
-           The component already carries its own dark pill styling
-           (flag + code + chevron); below we just shrink it to fit the
-           compact mobile row and keep its dropdown from overflowing off
-           the right edge of the screen.
-           NOTE: adjust the selectors below if your actual markup uses
-           different class names -- inspect the rendered <div> in
-           DevTools and swap the "top-lang-switcher *" targets accordingly. */
-        .top-lang-switcher {
-            display: flex;
+        .desktop-lang-switcher,
+        .mobile-lang-switcher-top {
             align-items: center;
         }
 
-        @media (max-width: 639px) {
-
-            .top-lang-switcher button,
-            .top-lang-switcher a {
-                font-size: 0.75rem !important;
-                padding: 0.375rem 0.5rem !important;
-            }
-
-            .top-lang-switcher img {
-                width: 1rem !important;
-                height: auto !important;
-            }
-
-            .top-lang-switcher svg {
-                width: 0.875rem !important;
-                height: 0.875rem !important;
-            }
+        .mobile-lang-switcher-top button,
+        .mobile-lang-switcher-top a {
+            font-size: 0.75rem !important;
+            padding: 0.375rem 0.5rem !important;
         }
 
-        /* Dropdown panel: force it to open flush with the right edge of
-           the button instead of the left, so it can't push the page
-           wider than the viewport near the screen edge. */
-        .top-lang-switcher [class*="dropdown"],
-        .top-lang-switcher [class*="menu"],
-        .top-lang-switcher [class*="panel"] {
+        .mobile-lang-switcher-top img {
+            width: 1rem !important;
+            height: auto !important;
+        }
+
+        .mobile-lang-switcher-top svg {
+            width: 0.875rem !important;
+            height: 0.875rem !important;
+        }
+
+        .mobile-lang-switcher-top [class*="dropdown"],
+        .mobile-lang-switcher-top [class*="menu"],
+        .mobile-lang-switcher-top [class*="panel"] {
             right: 0 !important;
             left: auto !important;
             z-index: 60;
@@ -133,26 +116,15 @@
     <div class="bg-white">
 
         <header class="relative">
-            <!--
-                Primary Menu Row (topmost) — sits above the logo/search/cart
-                row and the info top-bar. Language switcher on the left,
-                mega menu nav (which renders its own mobile hamburger toggle
-                on small screens) filling the rest. On mobile this row is
-                now the ONLY place the language switcher and menu toggle
-                appear, sitting side by side: [Language] [Hamburger].
-
-                Max Mega Menu handles BOTH breakpoints itself: a horizontal
-                mega-dropdown nav on desktop, and its own off-canvas mobile
-                drawer (with built-in toggle button) on smaller screens. Do
-                NOT wrap .mega-menu-wrap itself in "hidden lg:block" -- Max
-                Mega Menu's own responsive JS/CSS controls which view shows,
-                and its mobile toggle button renders naturally inside this
-                wrap, right next to the language switcher.
-            -->
             <div class="bg-white border-b border-gray-200">
                 <div class="mx-auto px-4 sm:px-6 lg:px-4">
                     <div class="flex items-center">
-                        <div class="top-lang-switcher flex-shrink-0 pr-3 mr-3 sm:pr-4 sm:mr-4 border-r border-gray-200">
+                        <div
+                            class="desktop-lang-switcher hidden lg:flex flex-shrink-0 pr-4 mr-4 border-r border-gray-200">
+                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
+                        </div>
+                        <div
+                            class="mobile-lang-switcher-top flex lg:hidden flex-shrink-0 pr-3 mr-3 border-r border-gray-200">
                             <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                         </div>
                         <div class="mega-menu-wrap flex-1 min-w-0">
@@ -262,10 +234,7 @@
                             endif; ?>
                         </div>
 
-                        <!-- Mobile Menu Toggle + Cart
-                             (Language switcher & hamburger now both live up in the
-                             Primary Menu Row above -- this row only needs the cart
-                             icon on mobile.) -->
+                        <!-- Mobile Menu Toggle + Cart -->
                         <div class="flex items-center space-x-3 lg:hidden">
                             <a href="<?= esc_url(home_url('/cart/')) ?>"
                                 class="relative flex items-center text-gray-700 hover:text-brand">
