@@ -84,13 +84,13 @@ while (have_posts()):
                   ]);
 
                   $cat_id = 'stpp-cat-' . $category->term_id;
-                  $active_classes = $is_selected ? 'bg-red-600 text-white shadow-sm' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
+                  $active_classes = $is_selected ? 'text-red-600 font-semibold' : ($has_selected_descendant ? 'bg-red-50 text-red-800 font-semibold' : 'text-slate-900 hover:bg-gray-50 hover:text-red-700');
 
                   echo '<div class="category-item border-b border-gray-200" style="padding-left: ' . esc_attr($indent) . 'rem;">';
 
                   if (!empty($has_children)) {
-                    echo '<div class="flex items-center justify-between group transition-all duration-200 ' . ($is_selected ? 'bg-red-600 text-white' : 'hover:bg-gray-50') . '">';
-                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center gap-2 text-sm flex-1 py-2.5 px-1 transition-colors ' . ($is_selected ? 'text-white font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
+                    echo '<div class="flex items-center justify-between group transition-all duration-200 ' . ($is_selected ? 'text-red-600' : 'hover:bg-gray-50') . '">';
+                    echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center gap-2 text-sm flex-1 py-2.5 px-1 transition-colors ' . ($is_selected ? 'text-red-600 font-semibold' : 'text-slate-900 hover:text-slate-700') . '">';
                     echo '<span class="flex-1">' . esc_html($category->name) . '</span>';
                     echo '</a>';
                     echo '<button type="button" class="category-toggle' . ($has_selected_descendant ? ' expanded' : '') . ' p-2 mr-1 hover:bg-gray-100 rounded-md transition-all duration-200" data-target="' . esc_attr($cat_id) . '" aria-expanded="' . ($has_selected_descendant ? 'true' : 'false') . '">';
@@ -109,7 +109,7 @@ while (have_posts()):
                     echo '<a href="' . esc_url(get_category_url($category->slug)) . '" class="flex items-center justify-between py-2.5 px-1 text-sm rounded-lg transition-all duration-200 ' . $active_classes . '">';
                     echo '<span class="flex items-center gap-2">';
                     if ($is_selected) {
-                      echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-white"></span>';
+                      echo '<span class="inline-flex h-2.5 w-2.5 rounded-full bg-red-600"></span>';
                     }
                     echo esc_html($category->name);
                     echo '</span>';
