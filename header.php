@@ -35,42 +35,47 @@
             box-sizing: border-box;
         }
 
-        /* Mobile Language Switcher ([mlt_language_switcher]) placed
-           beside the cart on the logo row. The component already carries
-           its own dark pill styling (flag + code + chevron), so we only
-           need to: (1) shrink it to fit the compact mobile row, and
-           (2) keep its dropdown panel from overflowing off the right
-           edge of the screen.
+        /* Language Switcher ([mlt_language_switcher]) — now lives in the
+           topmost Primary Menu Row on ALL breakpoints, immediately to the
+           left of the mega menu / mobile toggle button, so on mobile the
+           layout reads: [Language] [Hamburger] all in one top bar.
+           The component already carries its own dark pill styling
+           (flag + code + chevron); below we just shrink it to fit the
+           compact mobile row and keep its dropdown from overflowing off
+           the right edge of the screen.
            NOTE: adjust the selectors below if your actual markup uses
            different class names -- inspect the rendered <div> in
-           DevTools and swap "mobile-lang-switcher *" targets accordingly. */
-        .mobile-lang-switcher {
+           DevTools and swap the "top-lang-switcher *" targets accordingly. */
+        .top-lang-switcher {
             display: flex;
             align-items: center;
         }
 
-        .mobile-lang-switcher button,
-        .mobile-lang-switcher a {
-            font-size: 0.75rem !important;
-            padding: 0.375rem 0.5rem !important;
-        }
+        @media (max-width: 639px) {
 
-        .mobile-lang-switcher img {
-            width: 1rem !important;
-            height: auto !important;
-        }
+            .top-lang-switcher button,
+            .top-lang-switcher a {
+                font-size: 0.75rem !important;
+                padding: 0.375rem 0.5rem !important;
+            }
 
-        .mobile-lang-switcher svg {
-            width: 0.875rem !important;
-            height: 0.875rem !important;
+            .top-lang-switcher img {
+                width: 1rem !important;
+                height: auto !important;
+            }
+
+            .top-lang-switcher svg {
+                width: 0.875rem !important;
+                height: 0.875rem !important;
+            }
         }
 
         /* Dropdown panel: force it to open flush with the right edge of
            the button instead of the left, so it can't push the page
            wider than the viewport near the screen edge. */
-        .mobile-lang-switcher [class*="dropdown"],
-        .mobile-lang-switcher [class*="menu"],
-        .mobile-lang-switcher [class*="panel"] {
+        .top-lang-switcher [class*="dropdown"],
+        .top-lang-switcher [class*="menu"],
+        .top-lang-switcher [class*="panel"] {
             right: 0 !important;
             left: auto !important;
             z-index: 60;
@@ -128,6 +133,42 @@
     <div class="bg-white">
 
         <header class="relative">
+            <!--
+                Primary Menu Row (topmost) — sits above the logo/search/cart
+                row and the info top-bar. Language switcher on the left,
+                mega menu nav (which renders its own mobile hamburger toggle
+                on small screens) filling the rest. On mobile this row is
+                now the ONLY place the language switcher and menu toggle
+                appear, sitting side by side: [Language] [Hamburger].
+
+                Max Mega Menu handles BOTH breakpoints itself: a horizontal
+                mega-dropdown nav on desktop, and its own off-canvas mobile
+                drawer (with built-in toggle button) on smaller screens. Do
+                NOT wrap .mega-menu-wrap itself in "hidden lg:block" -- Max
+                Mega Menu's own responsive JS/CSS controls which view shows,
+                and its mobile toggle button renders naturally inside this
+                wrap, right next to the language switcher.
+            -->
+            <div class="bg-white border-b border-gray-200">
+                <div class="mx-auto px-4 sm:px-6 lg:px-4">
+                    <div class="flex items-center justify-between sm:justify-start">
+                        <div class="top-lang-switcher flex-shrink-0 pr-3 mr-3 sm:pr-4 sm:mr-4 border-r border-gray-200">
+                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
+                        </div>
+                        <div class="mega-menu-wrap flex-1 min-w-0">
+                            <?php
+                            wp_nav_menu(array(
+                                'theme_location' => 'primary',
+                                'container' => false,
+                                'menu_class' => 'flex items-center flex-wrap space-x-8 py-2',
+                                'fallback_cb' => false,
+                            ));
+                            ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Top Bar (Desktop Only) -->
             <div class="hidden sm:block bg-slate-800">
                 <div class="mx-auto px-4 sm:px-6 lg:px-4">
@@ -144,7 +185,6 @@
                             <li><a href="/about-us" class="hover:text-gray-100">Om os</a></li>
                         </ul>
                         <div class="flex items-center space-x-5">
-                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                             <a href="mailto:support@sal-tech.com"
                                 class="text-sm text-white hover:text-gray-100">support@sal-tech.com</a>
                             <a href="tel:+4570272220" class="text-sm text-white hover:text-gray-100">+45
@@ -222,16 +262,11 @@
                             endif; ?>
                         </div>
 
-                        <!-- Mobile Language Switcher + Menu Toggle + Cart -->
+                        <!-- Mobile Menu Toggle + Cart
+                             (Language switcher & hamburger now both live up in the
+                             Primary Menu Row above -- this row only needs the cart
+                             icon on mobile.) -->
                         <div class="flex items-center space-x-3 lg:hidden">
-                            <div class="mobile-lang-switcher flex items-center">
-                                <?php echo do_shortcode('[mlt_language_switcher]'); ?>
-                            </div>
-                            <!-- The actual hamburger button is injected here by JS below --
-                                 Max Mega Menu renders its own toggle inside .mega-menu-wrap
-                                 further down the page; we relocate that exact element into
-                                 this slot so there's only ever one toggle button on the page. -->
-                            <div id="mobile-menu-toggle-slot" class="flex items-center"></div>
                             <a href="<?= esc_url(home_url('/cart/')) ?>"
                                 class="relative flex items-center text-gray-700 hover:text-brand">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +278,7 @@
                             </a>
                         </div>
 
-                        <!-- Desktop Search + Cart + Language -->
+                        <!-- Desktop Search + Cart -->
                         <div class="hidden lg:flex items-center space-x-6">
                             <a href="<?php echo esc_url(home_url('/products-a-z')); ?>"
                                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
@@ -304,31 +339,10 @@
                     </div>
                 </div>
             </div>
-
-            <!--
-                Mega Menu (Desktop + Mobile)
-                Max Mega Menu is enabled for the "primary" location and handles
-                BOTH breakpoints itself: a horizontal mega-dropdown nav on desktop,
-                and its own off-canvas mobile drawer (with built-in toggle button)
-                on smaller screens. Do NOT wrap this in "hidden lg:block" -- Max
-                Mega Menu's own responsive JS/CSS controls which view shows based
-                on its Menu Locations > Mobile settings breakpoint.
-
-                Wrapped in .mega-menu-wrap so the overflow-safety CSS in <head>
-                can clamp any dropdown panel that tries to render wider than
-                the viewport.
-            -->
-            <div class="bg-white mega-menu-wrap">
-                <?php
-                wp_nav_menu(array(
-                    'theme_location' => 'primary',
-                    'container' => false,
-                    'menu_class' => 'flex items-center flex-wrap space-x-8 py-2',
-                    'fallback_cb' => false,
-                ));
-                ?>
-            </div>
         </header>
     </div>
 
-    <main class="flex-1 bg-gray-50">
+    <main class="flex-1 bg-gray-50"></main>
+</body>
+
+</html>
