@@ -222,11 +222,16 @@
                             endif; ?>
                         </div>
 
-                        <!-- Mobile Language Switcher + Cart (menu toggle is now provided by Max Mega Menu) -->
+                        <!-- Mobile Language Switcher + Menu Toggle + Cart -->
                         <div class="flex items-center space-x-3 lg:hidden">
                             <div class="mobile-lang-switcher flex items-center">
                                 <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                             </div>
+                            <!-- The actual hamburger button is injected here by JS below --
+                                 Max Mega Menu renders its own toggle inside .mega-menu-wrap
+                                 further down the page; we relocate that exact element into
+                                 this slot so there's only ever one toggle button on the page. -->
+                            <div id="mobile-menu-toggle-slot" class="flex items-center"></div>
                             <a href="<?= esc_url(home_url('/cart/')) ?>"
                                 class="relative flex items-center text-gray-700 hover:text-brand">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
