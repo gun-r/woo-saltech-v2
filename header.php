@@ -476,7 +476,7 @@
                     wp_nav_menu(array(
                         'theme_location' => 'primary',
                         'container' => false,
-                        'menu_class' => 'flex items-center space-x-8 h-16',
+                        'menu_class' => 'flex items-center space-x-4 h-16 overflow-x-auto flex-nowrap',
                         'fallback_cb' => false,
                     ));
                     ?>
