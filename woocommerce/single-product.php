@@ -17,7 +17,7 @@ while (have_posts()):
 
       <!-- Main Product Section -->
       <div class=" overflow-hidden">
-        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
+        <div class="flex flex-col lg:flex-row gap-8 p-6 sm:p-8 lg:p-10">
 
           <!-- Categories Sidebar (Left) -->
           <aside class="hidden lg:block w-64 flex-shrink-0">
@@ -190,7 +190,7 @@ while (have_posts()):
 
                 <!-- Thumbnails Slider -->
                 <?php if ($main_image_id || !empty($gallery_ids)): ?>
-                  <div class="swiper mySwiperThumbs">
+                  <div class="swiper mySwiperThumbs overflow-hidden">
                     <div class="swiper-wrapper gap-2" id="thumb-swiper-wrapper">
                       <?php
                       if ($main_image_id) {

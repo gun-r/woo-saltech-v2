@@ -131,32 +131,8 @@ function custom_enqueue_swiper()
         // Swiper CSS
         wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', [], null);
 
-        // Swiper JS
+        // Swiper JS (initialized in woocommerce/single-product.php, tied to the variation image-swap logic)
         wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', [], null, true);
-
-        // Init Script
-        wp_add_inline_script('swiper-js', "
-            document.addEventListener('DOMContentLoaded', function() {
-                var swiperThumbs = new Swiper('.mySwiperThumbs', {
-                    spaceBetween: 10,
-                    slidesPerView: 5,
-                    freeMode: true,
-                    watchSlidesProgress: true,
-                });
-
-                var swiperMain = new Swiper('.mySwiper2', {
-                    loop: true,
-                    spaceBetween: 10,
-                    navigation: {
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                    },
-                    thumbs: {
-                        swiper: swiperThumbs,
-                    },
-                });
-            });
-        ");
     }
 }
 add_action('wp_enqueue_scripts', 'custom_enqueue_swiper');
