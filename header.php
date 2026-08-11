@@ -151,7 +151,7 @@
             -->
             <div class="bg-white border-b border-gray-200">
                 <div class="mx-auto px-4 sm:px-6 lg:px-4">
-                    <div class="flex items-center justify-between sm:justify-start">
+                    <div class="flex items-center">
                         <div class="top-lang-switcher flex-shrink-0 pr-3 mr-3 sm:pr-4 sm:mr-4 border-r border-gray-200">
                             <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                         </div>
