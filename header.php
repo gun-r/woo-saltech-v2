@@ -127,7 +127,13 @@
 
                     <!-- Dynamic Menu Content -->
                     <div class="border-t border-gray-200 mt-4 mb-6">
-                        <?php echo do_shortcode('[dynamic_menu_mobile]'); ?>
+                        <?php
+                        wp_nav_menu(array(
+                            'theme_location' => 'primary',
+                            'container' => false,
+                            'fallback_cb' => false,
+                        ));
+                        ?>
                     </div>
 
                     <!-- Additional Navigation -->
