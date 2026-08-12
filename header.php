@@ -144,6 +144,7 @@
                             <li><a href="/about-us" class="hover:text-gray-100">Om os</a></li>
                         </ul>
                         <div class="flex items-center space-x-5">
+                            <?php echo do_shortcode('[wc_currency_switcher]'); ?>
                             <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                             <a href="mailto:support@sal-tech.com"
                                 class="text-sm text-white hover:text-gray-100">support@sal-tech.com</a>
@@ -224,6 +225,7 @@
 
                         <!-- Mobile Language Switcher + Menu Toggle + Cart -->
                         <div class="flex items-center space-x-3 lg:hidden">
+                          <?php echo do_shortcode('[wc_currency_switcher]'); ?>
                             <div class="mobile-lang-switcher flex items-center">
                                 <?php echo do_shortcode('[mlt_language_switcher]'); ?>
                             </div>
