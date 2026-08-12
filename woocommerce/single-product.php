@@ -156,9 +156,9 @@ while (have_posts()):
           </aside><!-- /.Categories Sidebar -->
 
           <div class="flex-1 min-w-0 space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
               <!-- Product Gallery -->
-              <div class="lg:col-span-2">
+              <div class="lg:col-span-3">
                 <!-- Main Gallery Slider -->
                 <div class="swiper mySwiper2 mb-4 overflow-hidden bg-gray-100">
                   <div class="swiper-wrapper" id="main-swiper-wrapper">
@@ -212,7 +212,7 @@ while (have_posts()):
               </div>
 
               <!-- Product Info -->
-              <div class="lg:col-span-1 lg:sticky lg:top-8 lg:self-start">
+              <div class="lg:col-span-2 lg:sticky lg:top-8 lg:self-start">
 
                 <!-- Product Title -->
                 <h1 class="text-2xl sm:text-2xl font-semibold text-gray-900 mb-4"><?php the_title(); ?></h1>
