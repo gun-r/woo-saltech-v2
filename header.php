@@ -35,10 +35,11 @@
             box-sizing: border-box;
         }
 
-        /* Mobile Language Switcher ([mlt_language_switcher]) placed
-           beside the cart on the logo row. The component already carries
-           its own dark pill styling (flag + code + chevron), so we only
-           need to: (1) shrink it to fit the compact mobile row, and
+        /* Mobile Language Switcher ([mlt_language_switcher]) -- now placed
+           in its own row at the very top of the mobile header, beside the
+           currency switcher. The component already carries its own dark
+           pill styling (flag + code + chevron), so we only need to:
+           (1) shrink it to fit the compact mobile row, and
            (2) keep its dropdown panel from overflowing off the right
            edge of the screen.
            NOTE: adjust the selectors below if your actual markup uses
@@ -74,6 +75,21 @@
             right: 0 !important;
             left: auto !important;
             z-index: 60;
+        }
+
+        /* Mobile Currency Switcher ([wc_currency_switcher]) -- sits next to
+           the language switcher in the same top mobile row, so it needs
+           the same compact treatment. */
+        .mobile-currency-switcher {
+            display: flex;
+            align-items: center;
+        }
+
+        .mobile-currency-switcher select,
+        .mobile-currency-switcher button,
+        .mobile-currency-switcher a {
+            font-size: 0.75rem !important;
+            padding: 0.375rem 0.5rem !important;
         }
     </style>
 
@@ -128,7 +144,7 @@
     <div class="bg-white">
 
         <header class="relative">
-            <!-- Top Bar (Desktop Only) -->
+            <!-- Top Bar (Desktop Only) -- unchanged -->
             <div class="hidden sm:block bg-slate-800">
                 <div class="mx-auto px-4 sm:px-6 lg:px-4">
                     <div class="flex h-10 items-center justify-between">
@@ -196,6 +212,20 @@
             <!-- Logo + Search/Cart Row -->
             <div class="bg-white border-b border-gray-200">
                 <div class="mx-auto px-4">
+
+                    <!-- MOBILE ROW 1: Currency + Language switcher.
+                         Desktop is untouched -- this row is lg:hidden and has
+                         no equivalent on desktop, since desktop already shows
+                         both switchers in the dark Top Bar above. -->
+                    <div class="flex items-center justify-end gap-2 pt-3 lg:hidden">
+                        <div class="mobile-currency-switcher">
+                            <?php echo do_shortcode('[wc_currency_switcher]'); ?>
+                        </div>
+                        <div class="mobile-lang-switcher">
+                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
+                        </div>
+                    </div>
+
                     <div class="flex h-20 items-center justify-between lg:h-24">
                         <!-- Logo -->
                         <div class="flex-shrink-0">
@@ -223,12 +253,11 @@
                             endif; ?>
                         </div>
 
-                        <!-- Mobile Language Switcher + Menu Toggle + Cart -->
+                        <!-- MOBILE ROW 2 (right side): Menu Toggle + Cart.
+                             Language/currency switchers moved up to Row 1 above,
+                             so this row now only holds the hamburger and cart,
+                             sitting level with the logo. -->
                         <div class="flex items-center space-x-3 lg:hidden">
-                          <?php echo do_shortcode('[wc_currency_switcher]'); ?>
-                            <div class="mobile-lang-switcher flex items-center">
-                                <?php echo do_shortcode('[mlt_language_switcher]'); ?>
-                            </div>
                             <!-- The actual hamburger button is injected here by JS below --
                                  Max Mega Menu renders its own toggle inside .mega-menu-wrap
                                  further down the page; we relocate that exact element into
@@ -245,7 +274,7 @@
                             </a>
                         </div>
 
-                        <!-- Desktop Search + Cart + Language -->
+                        <!-- Desktop Search + Cart + Language -- unchanged -->
                         <div class="hidden lg:flex items-center space-x-6">
                             <a href="<?php echo esc_url(home_url('/products-a-z')); ?>"
                                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
@@ -286,7 +315,7 @@
                         </div>
                     </div>
 
-                    <!-- Mobile Search -->
+                    <!-- MOBILE ROW 3: Search bar -- unchanged, still lg:hidden -->
                     <div class="pb-4 lg:hidden">
                         <form role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>"
                             class="relative w-full">
@@ -333,4 +362,7 @@
         </header>
     </div>
 
-    <main class="flex-1 bg-gray-50">
+    <main class="flex-1 bg-gray-50"></main>
+</body>
+
+</html>
