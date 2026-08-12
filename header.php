@@ -33,15 +33,41 @@
             box-sizing: border-box;
         }
 
-        .mobile-lang-switcher {
-            display: flex;
+        /* ---- Mobile top row: hamburger / logo / cart ---- */
+        .mobile-top-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
         }
 
+        .mobile-top-row .justify-self-start {
+            justify-self: start;
+        }
+
+        .mobile-top-row .justify-self-center {
+            justify-self: center;
+        }
+
+        .mobile-top-row .justify-self-end {
+            justify-self: end;
+        }
+
+        /* ---- Mobile second row: currency / language / search ---- */
+        .mobile-lang-switcher,
+        .mobile-currency-switcher {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
         .mobile-lang-switcher button,
-        .mobile-lang-switcher a {
+        .mobile-lang-switcher a,
+        .mobile-currency-switcher select,
+        .mobile-currency-switcher button,
+        .mobile-currency-switcher a {
             font-size: 0.75rem !important;
             padding: 0.375rem 0.5rem !important;
+            white-space: nowrap;
         }
 
         .mobile-lang-switcher img {
@@ -62,16 +88,25 @@
             z-index: 60;
         }
 
-        .mobile-currency-switcher {
+        /* Hamburger icon relocated from Max Mega Menu -- keep it a
+           reasonable tap-target size next to the logo/cart on mobile */
+        #mobile-menu-toggle-slot {
             display: flex;
             align-items: center;
         }
 
-        .mobile-currency-switcher select,
-        .mobile-currency-switcher button,
-        .mobile-currency-switcher a {
-            font-size: 0.75rem !important;
-            padding: 0.375rem 0.5rem !important;
+        #mobile-menu-toggle-slot a,
+        #mobile-menu-toggle-slot button {
+            font-size: 0 !important;
+            /* hide any plugin "Menu" text label */
+            padding: 0 !important;
+        }
+
+        #mobile-menu-toggle-slot svg,
+        #mobile-menu-toggle-slot i {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+            font-size: 1.5rem !important;
         }
     </style>
 
@@ -116,6 +151,46 @@
                     suggestionsBox.classList.add("hidden");
                 }
             });
+        });
+    </script>
+
+    <!-- Relocate Max Mega Menu's auto-generated mobile toggle button into
+         the #mobile-menu-toggle-slot placeholder in the new top row, so
+         there is only ever one hamburger icon on the page. -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var slot = document.getElementById('mobile-menu-toggle-slot');
+            if (!slot) return;
+
+            var toggle = document.querySelector(
+                '.mega-menu-wrap .mega-menu-toggle, ' +
+                '.mega-menu-wrap [class*="toggle"], ' +
+                '.mega-menu-wrap .mega-menu-open'
+            );
+
+            if (toggle) {
+                slot.appendChild(toggle);
+                return;
+            }
+
+            // Max Mega Menu sometimes injects its toggle asynchronously
+            // right after DOMContentLoaded -- fall back to a short-lived
+            // observer if it wasn't in the DOM yet on first check.
+            var attempts = 0;
+            var interval = setInterval(function () {
+                attempts++;
+                var lateToggle = document.querySelector(
+                    '.mega-menu-wrap .mega-menu-toggle, ' +
+                    '.mega-menu-wrap [class*="toggle"], ' +
+                    '.mega-menu-wrap .mega-menu-open'
+                );
+                if (lateToggle) {
+                    slot.appendChild(lateToggle);
+                    clearInterval(interval);
+                } else if (attempts > 20) {
+                    clearInterval(interval);
+                }
+            }, 100);
         });
     </script>
 </head>
@@ -195,48 +270,38 @@
             <div class="bg-white border-b border-gray-200">
                 <div class="mx-auto px-4">
 
-                    <div class="flex items-center justify-end gap-2 pt-3 lg:hidden">
-                        <div class="mobile-currency-switcher">
-                            <?php echo do_shortcode('[wc_currency_switcher]'); ?>
-                        </div>
-                        <div class="mobile-lang-switcher">
-                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
-                        </div>
-                    </div>
+                    <?php
+                    // Computed once, reused by both the mobile and desktop logo blocks below.
+                    $mlt_logo_url = function_exists('mlt_get_current_language_logo_url') ? mlt_get_current_language_logo_url() : '';
+                    $logo_id = get_theme_mod('custom_logo');
+                    $logo = wp_get_attachment_image_src($logo_id, 'h-14 w-auto');
+                    ?>
 
-                    <div class="flex h-20 items-center justify-between lg:h-24">
-                        <!-- Logo -->
-                        <div class="flex-shrink-0">
-                            <?php
-                            $mlt_logo_url = function_exists('mlt_get_current_language_logo_url') ? mlt_get_current_language_logo_url() : '';
-                            if ($mlt_logo_url):
-                                ?>
+                    <!-- MOBILE ROW 1: hamburger / logo (centered) / cart -->
+                    <div class="mobile-top-row py-3 lg:hidden">
+                        <div class="justify-self-start">
+                            <div id="mobile-menu-toggle-slot"></div>
+                        </div>
+
+                        <div class="justify-self-center">
+                            <?php if ($mlt_logo_url): ?>
                                 <a href="<?= esc_url(home_url('/')) ?>">
                                     <img src="<?= esc_url($mlt_logo_url) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
-                                        class="h-12 w-auto lg:h-14" id="headerLogo">
+                                        class="h-10 w-auto" id="headerLogoMobile">
                                 </a>
-                            <?php else:
-                                $logo_id = get_theme_mod('custom_logo');
-                                $logo = wp_get_attachment_image_src($logo_id, 'h-14 w-auto');
-                                if ($logo): ?>
-                                    <a href="<?= esc_url(home_url('/')) ?>">
-                                        <img src="<?= esc_url($logo[0]) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
-                                            class="h-12 w-auto lg:h-14" id="headerLogo">
-                                    </a>
-                                <?php else: ?>
-                                    <a href="<?= esc_url(home_url('/')) ?>" class="text-xl font-bold text-gray-900 lg:text-2xl">
-                                        <?= esc_html(get_bloginfo('name')) ?>
-                                    </a>
-                                <?php endif;
-                            endif; ?>
+                            <?php elseif ($logo): ?>
+                                <a href="<?= esc_url(home_url('/')) ?>">
+                                    <img src="<?= esc_url($logo[0]) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
+                                        class="h-10 w-auto" id="headerLogoMobile">
+                                </a>
+                            <?php else: ?>
+                                <a href="<?= esc_url(home_url('/')) ?>" class="text-lg font-bold text-gray-900">
+                                    <?= esc_html(get_bloginfo('name')) ?>
+                                </a>
+                            <?php endif; ?>
                         </div>
 
-                        <div class="flex items-center space-x-3 lg:hidden">
-                            <!-- The actual hamburger button is injected here by JS below --
-                                 Max Mega Menu renders its own toggle inside .mega-menu-wrap
-                                 further down the page; we relocate that exact element into
-                                 this slot so there's only ever one toggle button on the page. -->
-                            <div id="mobile-menu-toggle-slot" class="flex items-center"></div>
+                        <div class="justify-self-end">
                             <a href="<?= esc_url(home_url('/cart/')) ?>"
                                 class="relative flex items-center text-gray-700 hover:text-brand">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,9 +312,56 @@
                                     class="ml-1 text-sm font-medium"><?= WC()->cart->get_cart_contents_count() ?></span>
                             </a>
                         </div>
+                    </div>
 
-                        <!-- Desktop Search + Cart + Language -- unchanged -->
-                        <div class="hidden lg:flex items-center space-x-6">
+                    <!-- MOBILE ROW 2: currency / language / search -->
+                    <div class="flex items-center gap-2 pb-4 lg:hidden">
+                        <div class="mobile-currency-switcher">
+                            <?php echo do_shortcode('[wc_currency_switcher]'); ?>
+                        </div>
+                        <div class="mobile-lang-switcher">
+                            <?php echo do_shortcode('[mlt_language_switcher]'); ?>
+                        </div>
+                        <form role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>"
+                            class="relative flex-1 min-w-0">
+                            <input type="search" name="s" placeholder="Search products..."
+                                class="w-full px-4 py-2.5 pr-12 rounded-full text-sm text-gray-700 placeholder-gray-400 bg-gray-100 focus:outline-none hover:bg-gray-200 transition duration-200 ease-in-out"
+                                autocomplete="off" />
+                            <?php if (class_exists('WooCommerce')): ?>
+                                <input type="hidden" name="post_type" value="product" />
+                            <?php endif; ?>
+                            <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- DESKTOP ROW -- unchanged -->
+                    <div class="hidden lg:flex h-20 items-center justify-between lg:h-24">
+                        <!-- Logo -->
+                        <div class="flex-shrink-0">
+                            <?php if ($mlt_logo_url): ?>
+                                <a href="<?= esc_url(home_url('/')) ?>">
+                                    <img src="<?= esc_url($mlt_logo_url) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
+                                        class="h-12 w-auto lg:h-14" id="headerLogo">
+                                </a>
+                            <?php elseif ($logo): ?>
+                                <a href="<?= esc_url(home_url('/')) ?>">
+                                    <img src="<?= esc_url($logo[0]) ?>" alt="<?= esc_attr(get_bloginfo('name')) ?>"
+                                        class="h-12 w-auto lg:h-14" id="headerLogo">
+                                </a>
+                            <?php else: ?>
+                                <a href="<?= esc_url(home_url('/')) ?>" class="text-xl font-bold text-gray-900 lg:text-2xl">
+                                    <?= esc_html(get_bloginfo('name')) ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Desktop Search + Cart + Language -->
+                        <div class="flex items-center space-x-6">
                             <a href="<?php echo esc_url(home_url('/products-a-z')); ?>"
                                 class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,25 +399,6 @@
                                 </span>
                             </a>
                         </div>
-                    </div>
-
-                    <!-- MOBILE ROW 3: Search bar -- unchanged, still lg:hidden -->
-                    <div class="pb-4 lg:hidden">
-                        <form role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>"
-                            class="relative w-full">
-                            <input type="search" name="s" placeholder="Search products..."
-                                class="w-full px-4 py-2.5 pr-12 rounded-full text-sm text-gray-700 placeholder-gray-400 bg-gray-100 focus:outline-none hover:bg-gray-200 transition duration-200 ease-in-out"
-                                autocomplete="off" />
-                            <?php if (class_exists('WooCommerce')): ?>
-                                <input type="hidden" name="post_type" value="product" />
-                            <?php endif; ?>
-                            <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                </svg>
-                            </button>
-                        </form>
                     </div>
                 </div>
             </div>
