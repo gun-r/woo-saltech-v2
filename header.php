@@ -20,8 +20,6 @@
         }
     </script>
 
-    <!-- Overflow safety net: prevents horizontal scrollbar caused by
-         mega menu panels or other elements rendering wider than the viewport -->
     <style>
         html,
         body {
@@ -35,16 +33,6 @@
             box-sizing: border-box;
         }
 
-        /* Mobile Language Switcher ([mlt_language_switcher]) -- now placed
-           in its own row at the very top of the mobile header, beside the
-           currency switcher. The component already carries its own dark
-           pill styling (flag + code + chevron), so we only need to:
-           (1) shrink it to fit the compact mobile row, and
-           (2) keep its dropdown panel from overflowing off the right
-           edge of the screen.
-           NOTE: adjust the selectors below if your actual markup uses
-           different class names -- inspect the rendered <div> in
-           DevTools and swap "mobile-lang-switcher *" targets accordingly. */
         .mobile-lang-switcher {
             display: flex;
             align-items: center;
@@ -66,9 +54,6 @@
             height: 0.875rem !important;
         }
 
-        /* Dropdown panel: force it to open flush with the right edge of
-           the button instead of the left, so it can't push the page
-           wider than the viewport near the screen edge. */
         .mobile-lang-switcher [class*="dropdown"],
         .mobile-lang-switcher [class*="menu"],
         .mobile-lang-switcher [class*="panel"] {
@@ -77,9 +62,6 @@
             z-index: 60;
         }
 
-        /* Mobile Currency Switcher ([wc_currency_switcher]) -- sits next to
-           the language switcher in the same top mobile row, so it needs
-           the same compact treatment. */
         .mobile-currency-switcher {
             display: flex;
             align-items: center;
@@ -213,10 +195,6 @@
             <div class="bg-white border-b border-gray-200">
                 <div class="mx-auto px-4">
 
-                    <!-- MOBILE ROW 1: Currency + Language switcher.
-                         Desktop is untouched -- this row is lg:hidden and has
-                         no equivalent on desktop, since desktop already shows
-                         both switchers in the dark Top Bar above. -->
                     <div class="flex items-center justify-end gap-2 pt-3 lg:hidden">
                         <div class="mobile-currency-switcher">
                             <?php echo do_shortcode('[wc_currency_switcher]'); ?>
@@ -253,10 +231,6 @@
                             endif; ?>
                         </div>
 
-                        <!-- MOBILE ROW 2 (right side): Menu Toggle + Cart.
-                             Language/currency switchers moved up to Row 1 above,
-                             so this row now only holds the hamburger and cart,
-                             sitting level with the logo. -->
                         <div class="flex items-center space-x-3 lg:hidden">
                             <!-- The actual hamburger button is injected here by JS below --
                                  Max Mega Menu renders its own toggle inside .mega-menu-wrap
@@ -336,19 +310,6 @@
                 </div>
             </div>
 
-            <!--
-                Mega Menu (Desktop + Mobile)
-                Max Mega Menu is enabled for the "primary" location and handles
-                BOTH breakpoints itself: a horizontal mega-dropdown nav on desktop,
-                and its own off-canvas mobile drawer (with built-in toggle button)
-                on smaller screens. Do NOT wrap this in "hidden lg:block" -- Max
-                Mega Menu's own responsive JS/CSS controls which view shows based
-                on its Menu Locations > Mobile settings breakpoint.
-
-                Wrapped in .mega-menu-wrap so the overflow-safety CSS in <head>
-                can clamp any dropdown panel that tries to render wider than
-                the viewport.
-            -->
             <div class="bg-white mega-menu-wrap">
                 <?php
                 wp_nav_menu(array(
