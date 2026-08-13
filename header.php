@@ -52,61 +52,124 @@
             justify-self: end;
         }
 
-        /* ---- Mobile second row: currency / language / search ---- */
         .mobile-lang-switcher,
-        .mobile-currency-switcher {
+        .mobile-currency-switcher,
+        .desktop-lang-switcher,
+        .desktop-currency-switcher {
             display: flex;
             align-items: center;
             flex-shrink: 0;
         }
 
+        .mobile-lang-switcher select,
         .mobile-lang-switcher button,
         .mobile-lang-switcher a,
         .mobile-currency-switcher select,
         .mobile-currency-switcher button,
-        .mobile-currency-switcher a {
+        .mobile-currency-switcher a,
+        .desktop-lang-switcher select,
+        .desktop-lang-switcher button,
+        .desktop-lang-switcher a,
+        .desktop-currency-switcher select,
+        .desktop-currency-switcher button,
+        .desktop-currency-switcher a {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.25rem;
+            background-color: #f3f4f6 !important;
+            /* bg-gray-100 */
+            color: #374151 !important;
+            /* text-gray-700 */
+            border: none !important;
+            border-radius: 9999px !important;
             font-size: 0.75rem !important;
-            padding: 0.375rem 0.5rem !important;
+            font-weight: 500;
+            padding: 0.375rem 0.75rem !important;
             white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
         }
 
-        .mobile-lang-switcher img {
+        .mobile-lang-switcher select:hover,
+        .mobile-lang-switcher button:hover,
+        .mobile-lang-switcher a:hover,
+        .mobile-currency-switcher select:hover,
+        .mobile-currency-switcher button:hover,
+        .mobile-currency-switcher a:hover,
+        .desktop-lang-switcher select:hover,
+        .desktop-lang-switcher button:hover,
+        .desktop-lang-switcher a:hover,
+        .desktop-currency-switcher select:hover,
+        .desktop-currency-switcher button:hover,
+        .desktop-currency-switcher a:hover {
+            background-color: #e5e7eb !important;
+            /* bg-gray-200 */
+        }
+
+        .desktop-lang-switcher select,
+        .desktop-lang-switcher button,
+        .desktop-lang-switcher a,
+        .desktop-currency-switcher select,
+        .desktop-currency-switcher button,
+        .desktop-currency-switcher a {
+            font-size: 0.875rem !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .mobile-lang-switcher img,
+        .desktop-lang-switcher img {
             width: 1rem !important;
             height: auto !important;
         }
 
-        .mobile-lang-switcher svg {
+        .mobile-lang-switcher svg,
+        .desktop-lang-switcher svg {
             width: 0.875rem !important;
             height: 0.875rem !important;
         }
 
         .mobile-lang-switcher [class*="dropdown"],
         .mobile-lang-switcher [class*="menu"],
-        .mobile-lang-switcher [class*="panel"] {
+        .mobile-lang-switcher [class*="panel"],
+        .mobile-currency-switcher [class*="dropdown"],
+        .mobile-currency-switcher [class*="menu"],
+        .mobile-currency-switcher [class*="panel"] {
             right: 0 !important;
             left: auto !important;
             z-index: 60;
+            border-radius: 0.75rem !important;
+            overflow: hidden;
+            margin-top: 0.5rem !important;
         }
 
-        /* Hamburger icon relocated from Max Mega Menu -- keep it a
-           reasonable tap-target size next to the logo/cart on mobile */
-        #mobile-menu-toggle-slot {
+        /* Mobile hamburger button + the panel it toggles */
+        #mobile-menu-toggle-btn {
             display: flex;
             align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
         }
 
-        #mobile-menu-toggle-slot a,
-        #mobile-menu-toggle-slot button {
-            font-size: 0 !important;
-            /* hide any plugin "Menu" text label */
-            padding: 0 !important;
+        #mobile-menu-toggle-btn svg {
+            width: 1.5rem;
+            height: 1.5rem;
         }
 
-        #mobile-menu-toggle-slot svg,
-        #mobile-menu-toggle-slot i {
-            width: 1.5rem !important;
-            height: 1.5rem !important;
-            font-size: 1.5rem !important;
+        .mega-menu-wrap {
+            display: none;
+        }
+
+        .mega-menu-wrap.mobile-menu-open {
+            display: block;
+        }
+
+        @media (min-width: 1024px) {
+            .mega-menu-wrap {
+                display: block !important;
+            }
         }
     </style>
 
@@ -154,43 +217,19 @@
         });
     </script>
 
-    <!-- Relocate Max Mega Menu's auto-generated mobile toggle button into
-         the #mobile-menu-toggle-slot placeholder in the new top row, so
-         there is only ever one hamburger icon on the page. -->
+    <!-- Mobile menu toggle -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var slot = document.getElementById('mobile-menu-toggle-slot');
-            if (!slot) return;
+            var btn = document.getElementById('mobile-menu-toggle-btn');
+            var panel = document.querySelector('.mega-menu-wrap');
+            if (!btn || !panel) return;
 
-            var toggle = document.querySelector(
-                '.mega-menu-wrap .mega-menu-toggle, ' +
-                '.mega-menu-wrap [class*="toggle"], ' +
-                '.mega-menu-wrap .mega-menu-open'
-            );
-
-            if (toggle) {
-                slot.appendChild(toggle);
-                return;
-            }
-
-            // Max Mega Menu sometimes injects its toggle asynchronously
-            // right after DOMContentLoaded -- fall back to a short-lived
-            // observer if it wasn't in the DOM yet on first check.
-            var attempts = 0;
-            var interval = setInterval(function () {
-                attempts++;
-                var lateToggle = document.querySelector(
-                    '.mega-menu-wrap .mega-menu-toggle, ' +
-                    '.mega-menu-wrap [class*="toggle"], ' +
-                    '.mega-menu-wrap .mega-menu-open'
-                );
-                if (lateToggle) {
-                    slot.appendChild(lateToggle);
-                    clearInterval(interval);
-                } else if (attempts > 20) {
-                    clearInterval(interval);
-                }
-            }, 100);
+            btn.addEventListener('click', function () {
+                var isOpen = panel.classList.toggle('mobile-menu-open');
+                btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                btn.querySelector('.icon-open').classList.toggle('hidden', isOpen);
+                btn.querySelector('.icon-close').classList.toggle('hidden', !isOpen);
+            });
         });
     </script>
 </head>
@@ -280,7 +319,17 @@
                     <!-- MOBILE ROW 1: hamburger / logo (centered) / cart -->
                     <div class="mobile-top-row py-3 lg:hidden">
                         <div class="justify-self-start">
-                            <div id="mobile-menu-toggle-slot"></div>
+                            <button id="mobile-menu-toggle-btn" type="button" aria-expanded="false"
+                                aria-controls="mobile-nav-panel" aria-label="Toggle menu">
+                                <svg class="icon-open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                                </svg>
+                                <svg class="icon-close hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
 
                         <div class="justify-self-center">
@@ -339,7 +388,7 @@
                         </form>
                     </div>
 
-                    <!-- DESKTOP ROW -- unchanged -->
+                    <!-- DESKTOP ROW -->
                     <div class="hidden lg:flex h-20 items-center justify-between lg:h-24">
                         <!-- Logo -->
                         <div class="flex-shrink-0">
@@ -403,7 +452,7 @@
                 </div>
             </div>
 
-            <div class="bg-white mega-menu-wrap">
+            <div id="mobile-nav-panel" class="bg-white mega-menu-wrap">
                 <?php
                 wp_nav_menu(array(
                     'theme_location' => 'primary',
