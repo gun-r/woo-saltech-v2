@@ -33,6 +33,25 @@
             box-sizing: border-box;
         }
 
+        #headerLogoMobile {
+            height: 2.5rem;
+            /* matches Tailwind h-10 */
+            width: auto;
+        }
+
+        #headerLogo {
+            height: 3rem;
+            /* matches Tailwind h-12 */
+            width: auto;
+        }
+
+        @media (min-width: 1024px) {
+            #headerLogo {
+                height: 3.5rem;
+                /* matches Tailwind lg:h-14 */
+            }
+        }
+
         /* ---- Mobile top row: hamburger / logo / cart ---- */
         .mobile-top-row {
             display: grid;
@@ -52,7 +71,7 @@
             justify-self: end;
         }
 
-
+        /* ---- Currency / Language switcher buttons (MOBILE ONLY) ---- */
         @media (max-width: 1023px) {
 
             .mobile-lang-switcher,
@@ -178,10 +197,27 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var slot = document.getElementById('mobile-menu-toggle-slot');
-            var toggleBlock = document.querySelector('.mega-toggle-block');
-            if (slot && toggleBlock) {
-                slot.appendChild(toggleBlock);
+            if (!slot) return;
+
+            function tryRelocate() {
+                var toggleBlock = document.querySelector('.mega-toggle-block');
+                if (toggleBlock && toggleBlock.parentElement !== slot) {
+                    slot.appendChild(toggleBlock);
+                    return true;
+                }
+                return false;
             }
+
+            tryRelocate();
+
+            var observer = new MutationObserver(function () {
+                tryRelocate();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            // Stop watching after 15s so this doesn't run indefinitely
+            // on pages where, for whatever reason, it never appears.
+            setTimeout(function () { observer.disconnect(); }, 15000);
         });
     </script>
 </head>
